@@ -6,3 +6,5 @@ Matrícula: 202245944
 Nombre: Osiris Ojeda Rodríguez
 
 Materia: Desarrollo de Aplicaciones Web
+
+Periodo: Otoño 2025
