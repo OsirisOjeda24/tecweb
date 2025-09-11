@@ -73,9 +73,10 @@
     verificar la evolución del tipo de estas variables (imprime todos los componentes de
     los arreglo):</p>
     <?php
+        
         $a = "PHP5";
         $z = array();
-        $z[] = &$a; // referencia
+        $z[] = &$a;
 
         echo '<pre>1) $a y $z tras $z[]=&$a:';
         var_dump($a);
@@ -85,13 +86,13 @@
         $b = "5a version de PHP";
         echo '<pre>2) $b: '; var_dump($b); echo '</pre>';
 
-        $c = $b * 10;
+        $c = intval($b) * 10;
         echo '<pre>3) $c = $b * 10: '; var_dump($c); echo '</pre>';
 
         $a .= $b;
         echo '<pre>4) $a .= $b -> $a: '; var_dump($a); echo '</pre>';
 
-        $b *= $c;
+        $b *= $c; 
         echo '<pre>5) $b *= $c -> $b: '; var_dump($b); echo '</pre>';
 
         $z[0] = "MySQL";
@@ -104,8 +105,8 @@
     ?>
 
     <h2>Ejercicio 4</h2>
-    <p>Lee y muestra los valores de las variables del ejercicio anterior, pero ahora con 
-    la ayuda de la matriz $GLOBALS o del modificador global de PHP.p>
+    <p>Lee y muestra los valores de las variables del ejercicio anterior, pero 
+    ahora con la ayuda de la matriz $GLOBALS o del modificador global de PHP.</p>
     <?php
         $a = 10; $b = 20; $c = 30;
 
