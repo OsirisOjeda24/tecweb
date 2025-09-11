@@ -62,8 +62,45 @@
         var_dump($a, $b, $c);
         echo '</pre>';
 
-        echo '<p>Descripción: $c era referencia a $a, por eso refleja el cambio; al hacer $b=&$a, $b también referencia a $a. Por lo que al final los tres apuntan al mismo valor.</p>';
+        echo '<p>Descripción: $c era referencia a $a, por eso refleja el cambio; al hacer 
+        $b=&$a, $b también referencia a $a. Por lo que al final los tres apuntan al
+        mismo valor.</p>';
         unset($a, $b, $c);
+    ?>
+
+    <h2>Ejercicio 3</h2>
+    <p>Muestra el contenido de cada variable inmediatamente después de cada asignación,
+    verificar la evolución del tipo de estas variables (imprime todos los componentes de
+    los arreglo):</p>
+    <?php
+        $a = "PHP5";
+        $z = array();
+        $z[] = &$a; // referencia
+
+        echo '<pre>1) $a y $z tras $z[]=&$a:';
+        var_dump($a);
+        print_r($z);
+        echo '</pre>';
+
+        $b = "5a version de PHP";
+        echo '<pre>2) $b: '; var_dump($b); echo '</pre>';
+
+        $c = $b * 10;
+        echo '<pre>3) $c = $b * 10: '; var_dump($c); echo '</pre>';
+
+        $a .= $b;
+        echo '<pre>4) $a .= $b -> $a: '; var_dump($a); echo '</pre>';
+
+        $b *= $c;
+        echo '<pre>5) $b *= $c -> $b: '; var_dump($b); echo '</pre>';
+
+        $z[0] = "MySQL";
+        echo '<pre>6) $z[0] = "MySQL" -> $z y $a:';
+        print_r($z);
+        var_dump($a);
+        echo '</pre>';
+
+        unset($a, $b, $c, $z);
     ?>
 </body>
 </html>
