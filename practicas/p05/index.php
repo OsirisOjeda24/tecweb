@@ -102,5 +102,23 @@
 
         unset($a, $b, $c, $z);
     ?>
+
+    <h2>Ejercicio 4</h2>
+    <p>Lee y muestra los valores de las variables del ejercicio anterior, pero ahora con 
+    la ayuda de la matriz $GLOBALS o del modificador global de PHP.p>
+    <?php
+        $a = 10; $b = 20; $c = 30;
+
+        function mostrarGlobals() {
+            global $a, $b;
+            echo '<pre>';
+            echo 'Usando global: $a y $b = '; var_dump($a, $b);
+            echo 'Usando $GLOBALS: $a, $b, $c = '; var_dump($GLOBALS['a'], $GLOBALS['b'], $GLOBALS['c']);
+            echo '</pre>';
+        }
+
+        mostrarGlobals();
+        unset($a, $b, $c);
+    ?>
 </body>
 </html>
