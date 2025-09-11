@@ -38,5 +38,32 @@
 
         unset($_myvar, $_7var, $myvar, $var7, $_element1);
     ?>
+
+    <h2>Ejercicio 2</h2>
+    <p>Proporcionar los valores de $a, $b, $c como sigue:</p>
+    <?php
+
+        // Parte a
+        $a = "ManejadorSQL";
+        $b = 'MySQL';
+        $c = &$a;
+
+        echo '<pre>';
+        echo "Bloque inicial:\n";
+        var_dump($a, $b, $c);
+        echo '</pre>';
+
+        // Parte b
+        $a = "PHP server";
+        $b = &$a;
+
+        echo '<pre>';
+        echo "Después de reasignaciones:\n";
+        var_dump($a, $b, $c);
+        echo '</pre>';
+
+        echo '<p>Descripción: $c era referencia a $a, por eso refleja el cambio; al hacer $b=&$a, $b también referencia a $a. Por lo que al final los tres apuntan al mismo valor.</p>';
+        unset($a, $b, $c);
+    ?>
 </body>
 </html>
