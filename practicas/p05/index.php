@@ -136,5 +136,30 @@
 
         unset($a, $b, $c);
     ?>
+
+    <h2>Ejercicio 6</h2>
+    <p>Dar y comprobar el valor booleano de las variables $a, $b, $c, $d, $e y $f y 
+    muéstralas usando la función var_dump(<datos>).</p>
+    <?php
+        $a = "0";
+        $b = "TRUE";
+        $c = FALSE;
+        $d = ($a OR $b);
+        $e = ($a AND $c);
+        $f = ($a XOR $b);
+
+        echo '<pre>';
+        var_dump($a, $b, $c, $d, $e, $f);
+        echo '</pre>';
+
+        // Convertir booleanos a texto para echo
+        echo 'Booleanos convertidos: ';
+        echo 'd='.( $d ? 'TRUE':'FALSE' ).', ';
+        echo 'e='.( $e ? 'TRUE':'FALSE' ).', ';
+        echo 'f='.( $f ? 'TRUE':'FALSE' );
+        echo '<br>';
+
+        unset($a,$b,$c,$d,$e,$f);
+    ?>
 </body>
 </html>
