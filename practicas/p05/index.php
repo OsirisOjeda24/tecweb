@@ -69,40 +69,47 @@
     ?>
 
     <h2>Ejercicio 3</h2>
-    <p>Muestra el contenido de cada variable inmediatamente después de cada asignación,
-    verificar la evolución del tipo de estas variables (imprime todos los componentes de
-    los arreglo):</p>
+    <p>Muestra el contenido de cada variable inmediatamente después de cada asignación, 
+    verificar la evolución del tipo de estas variables (imprime todos los componentes 
+    de los arreglos):</p>
     <?php
-        
+        echo "<pre>";
+
+        // 1) $a y $z tras $z[] = &$a
         $a = "PHP5";
-        $z = array();
         $z[] = &$a;
-
-        echo '<pre>1) $a y $z tras $z[]=&$a:';
-        var_dump($a);
+        echo "1) \$a y \$z tras \$z[] = &\$a:\n";
         print_r($z);
-        echo '</pre>';
 
+        // 2) $b
         $b = "5a version de PHP";
-        echo '<pre>2) $b: '; var_dump($b); echo '</pre>';
+        echo "\n2) \$b:\n";
+        var_dump($b);
 
-        $c = intval($b) * 10;
-        echo '<pre>3) $c = $b * 10: '; var_dump($c); echo '</pre>';
+        // 3) $c = 5 * 10
+        $c = 5 * 10;
+        echo "\n3) \$c = 5 * 10:\n";
+        var_dump($c);
 
+        // 4) $a .= $b
         $a .= $b;
-        echo '<pre>4) $a .= $b -> $a: '; var_dump($a); echo '</pre>';
-
-        $b *= $c; 
-        echo '<pre>5) $b *= $c -> $b: '; var_dump($b); echo '</pre>';
-
-        $z[0] = "MySQL";
-        echo '<pre>6) $z[0] = "MySQL" -> $z y $a:';
-        print_r($z);
+        echo "\n4) \$a .= \$b:\n";
         var_dump($a);
-        echo '</pre>';
 
-        unset($a, $b, $c, $z);
+        // 5) $b_num *= $c
+        $b_num = 5;
+        $b_num *= $c;
+        echo "\n5) \$b_num *= \$c:\n";
+        var_dump($b_num);
+
+        // 6) $z[0] = "MySQL"
+        $z[0] = "MySQL";
+        echo "\n6) \$z[0] = \"MySQL\":\n";
+        print_r($z);
+
+        echo "</pre>";
     ?>
+
 
     <h2>Ejercicio 4</h2>
     <p>Lee y muestra los valores de las variables del ejercicio anterior, pero 
