@@ -1,5 +1,4 @@
 <?php
-
 // Ejercicio 1: Comprobar si un número es múltiplo de 5 y 7
 function esMultiplo($num) {
     return ($num % 5 == 0 && $num % 7 == 0);
@@ -80,17 +79,5 @@ function crearArregloASCII() {
     }
     
     return $arreglo;
-}
-
-// Ejercicio 5: Validar personas
-function validarPersona($edad, $sexo) {
-    $edad = intval($edad);
-    $sexo = strtolower(trim($sexo));
-    
-    if ($sexo == 'femenino' && $edad >= 18 && $edad <= 35) {
-        return "Bienvenida, usted está en el rango de edad permitido.";
-    } else {
-        return "Lo sentimos, no cumple con los requisitos establecidos.";
-    }
 }
 ?>
