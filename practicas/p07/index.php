@@ -87,20 +87,8 @@
         echo "</table>";
     ?>
 
-    <h2>Ejemplo de POST</h2>
-    <form action="http://localhost/tecweb/practicas/p07/index.php" method="post">
-        Name: <input type="text" name="name"><br>
-        E-mail: <input type="text" name="email"><br>
-        <input type="submit">
-    </form>
-    <br>
-    <?php
-        if(isset($_POST["name"]) && isset($_POST["email"]))
-        {
-            echo $_POST["name"];
-            echo '<br>';
-            echo $_POST["email"];
-        }
-    ?>
+    <h2>Ejercicios Con Formularios</h2>
+     <p><a href="ejercicios/ejercicio5.php"> // Ejercicio 5: Validación de edad y sexo </a></p>
+     <p><a href="ejercicios/ejercicio6.php"> // Ejercicio 6: Parque vehicular </a></p>
 </body>
 </html>
