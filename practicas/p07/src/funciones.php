@@ -1,8 +1,8 @@
 <?php
 
 // Ejercicio 1: Comprobar si un número es múltiplo de 5 y 7
-function esMultiplo($numero) {
-    return ($numero % 5 == 0 && $numero % 7 == 0);
+function esMultiplo($num) {
+    return ($num % 5 == 0 && $num % 7 == 0);
 }
 
 // Ejercicio 2: Generar una secuencia impar, par, impar
@@ -34,5 +34,51 @@ function generarSecuenciaImparParImpar() {
         'iteraciones' => $iteraciones,
         'numerosGenerados' => $numerosGenerados
     );
+}
+
+// Ejercicio 3: Encontrar múltiplo con while
+function encontrarMultiploWhile($numDado) {
+    $encontrado = false;
+    $intentos = 0;
+    
+    while (!$encontrado) {
+        $numAleatorio = rand(1, 1000);
+        $intentos++;
+        
+        if ($numAleatorio % $numDado == 0) {
+            $encontrado = true;
+            return array(
+                'numero' => $numAleatorio,
+                'intentos' => $intentos
+            );
+        }
+    }
+}
+
+// Encontrar múltiplo con do-while
+function encontrarMultiploDoWhile($numDado) {
+    $intentos = 0;
+    
+    do {
+        $numAleatorio = rand(1, 1000);
+        $intentos++;
+    } while ($numAleatorio % $numDado != 0);
+    
+    return array(
+        'numero' => $numAleatorio,
+        'intentos' => $intentos
+    );
+}
+
+// Ejercicio 4: Crear arreglo ASCII
+function crearArregloASCII() {
+    $arreglo = array();
+    
+    // Crear arreglo con for
+    for ($i = 97; $i <= 122; $i++) {
+        $arreglo[$i] = chr($i);
+    }
+    
+    return $arreglo;
 }
 ?>
