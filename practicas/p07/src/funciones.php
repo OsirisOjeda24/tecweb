@@ -81,4 +81,16 @@ function crearArregloASCII() {
     
     return $arreglo;
 }
+
+// Ejercicio 5: Validar personas
+function validarPersona($edad, $sexo) {
+    $edad = intval($edad);
+    $sexo = strtolower(trim($sexo));
+    
+    if ($sexo == 'femenino' && $edad >= 18 && $edad <= 35) {
+        return "Bienvenida, usted está en el rango de edad permitido.";
+    } else {
+        return "Lo sentimos, no cumple con los requisitos establecidos.";
+    }
+}
 ?>
