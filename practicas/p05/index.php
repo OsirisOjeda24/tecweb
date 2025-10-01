@@ -146,7 +146,7 @@
 
     <h2>Ejercicio 6</h2>
     <p>Dar y comprobar el valor booleano de las variables $a, $b, $c, $d, $e y $f y 
-    muéstralas usando la función var_dump(<datos>).</p>
+    muéstralas usando la función var_dump().</p>
     <?php
         $a = "0";
         $b = "TRUE";
@@ -180,5 +180,11 @@
 
     unset($_SERVER);
     ?>
+
+    <p>
+    <a href="https://validator.w3.org/check?uri=referer"><img
+      src="https://www.w3.org/Icons/valid-xhtml11" alt="XHTML 1.1 válido" altura="31" ancho="88" /></a>
+    </p>
+  
 </body>
 </html>
