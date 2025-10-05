@@ -11,19 +11,19 @@ function getDatos(){
 
 // Ejercicio 2
 function getDatosPersonales() {
-    var nombre = 'Juan';
-    var edad = 10;
-    var altura = 1.92;
-    var casado = false;
+    var nombre1 = 'Juan';
+    var edad1 = 10;
+    var altura1 = 1.92;
+    var casado1 = false;
     
-    var div1 = document.getElementById('nombre');
-    div1.innerHTML = '<h3> Nombre: ' + nombre + '</h3>';
-    var div2 = document.getElementById('edad');
-    div2.innerHTML = '<h3> Edad: ' + edad + '</h3>';
-    var div3 = document.getElementById('edad');
-    div3.innerHTML = '<h3> Altura: ' + altura + '</h3>';
-    var div4 = document.getElementById('edad');
-    div4.innerHTML = '<h3> Casado: ' + casado + '</h3>';
+    var div1 = document.getElementById('nombre1');
+    div1.innerHTML = '<h3> Nombre: ' + nombre1 + '</h3>';
+    var div2 = document.getElementById('edad1');
+    div2.innerHTML = '<h3> Edad: ' + edad1 + '</h3>';
+    var div3 = document.getElementById('altura1');
+    div3.innerHTML = '<h3> Altura: ' + altura1 + '</h3>';
+    var div4 = document.getElementById('casado1');
+    div4.innerHTML = '<h3> Casado: ' + casado1 + '</h3>';
 }
 
 // Ejercicio 3
@@ -111,7 +111,7 @@ function convertirNumeroTexto(){
     var div1 = document.getElementById('numero');
     switch (valor) {
     case 1: div1.innerHTML = '<h3>Número: uno</h3>'; break;
-    case 2: div2.innerHTML = '<h3>Número: dos</h3>'; break;
+    case 2: div1.innerHTML = '<h3>Número: dos</h3>'; break;
     case 3: div3.innerHTML = '<h3>Número: tres</h3>'; break;
     case 4: div4.innerHTML = '<h3>Número: cuatro</h3>'; break;
     case 5: div5.innerHTML = '<h3>Número: cinco</h3>'; break;
