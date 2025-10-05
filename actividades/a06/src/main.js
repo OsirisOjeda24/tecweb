@@ -112,10 +112,10 @@ function convertirNumeroTexto(){
     switch (valor) {
     case 1: div1.innerHTML = '<h3>Número: uno</h3>'; break;
     case 2: div1.innerHTML = '<h3>Número: dos</h3>'; break;
-    case 3: div3.innerHTML = '<h3>Número: tres</h3>'; break;
-    case 4: div4.innerHTML = '<h3>Número: cuatro</h3>'; break;
-    case 5: div5.innerHTML = '<h3>Número: cinco</h3>'; break;
-    default: div6.innerHTML = '<h3>Debe ingresar un valor comprendido entre 1 y 5</h3>';
+    case 3: div1.innerHTML = '<h3>Número: tres</h3>'; break;
+    case 4: div1.innerHTML = '<h3>Número: cuatro</h3>'; break;
+    case 5: div1.innerHTML = '<h3>Número: cinco</h3>'; break;
+    default: div1.innerHTML = '<h3>Debe ingresar un valor comprendido entre 1 y 5</h3>';
     } 
 }
 
@@ -131,11 +131,11 @@ function cambiarColorFondo(){
         break;
     case 'verde': 
         document.body.style.backgroundColor = '#00ff00';
-        div2.innerHTML = '<h3>Fondo cambiado a: verde</h3>';
+        div1.innerHTML = '<h3>Fondo cambiado a: verde</h3>';
         break;
     case 'azul': 
         document.body.style.backgroundColor = '#0000ff';
-        div3.innerHTML = '<h3>Fondo cambiado a: azul</h3>';
+        div1.innerHTML = '<h3>Fondo cambiado a: azul</h3>';
         break;
     }
 }
@@ -157,18 +157,18 @@ function contarHastaCien(){
 // Ejercicio 11
 function sumarCincoValores(){
     var x = 1;
-    var suma = 0;
+    var suma1 = 0;
     var valor;
     
     while (x<=5){
         valor = prompt('Ingresa el valor '+x+':', '');
         valor = parseInt(valor);
-        suma = suma+valor;
+        suma1 = suma1+valor;
         x = x+1;
     }
 
-    var div1 = document.getElementById('suma');
-    div1.innerHTML = '<h3>La suma de los valores es: '+suma+'</h3>';
+    var div1 = document.getElementById('suma1');
+    div1.innerHTML = '<h3>La suma de los valores es: '+suma1+'</h3>';
 }
 
 // Ejercicio 12
@@ -187,9 +187,9 @@ function contarDigitos(){
         if (valor<10)
             div1.innerHTML += '1 dígito</h3>';
         else if (valor<100)
-            div2.innerHTML += '2 dígitos</h3>';
+            div1.innerHTML += '2 dígitos</h3>';
         else
-            div3.innerHTML += '3 dígitos</h3>';
+            div1.innerHTML += '3 dígitos</h3>';
             
     }while(valor!=0);
 }
@@ -206,13 +206,13 @@ function contador(){
 
 // Ejercicio 14
 function mensajesRepetidos(){
-    var div1 = document.getElementById('ej14-mensajes');
+    var div1 = document.getElementById('mensajes');
     div1.innerHTML = '<h3>Cuidado</h3>';
-    div2.innerHTML += '<h3>Ingresa tu documento correctamente</h3>';
-    div3.innerHTML += '<h3>Cuidado</h3>';
-    div4.innerHTML += '<h3>Ingresa tu documento correctamente</h3>';
-    div5.innerHTML += '<h3>Cuidado</h3>';
-    div6.innerHTML += '<h3>Ingresa tu documento correctamente</h3>';
+    div1.innerHTML += '<h3>Ingresa tu documento correctamente</h3>';
+    div1.innerHTML += '<h3>Cuidado</h3>';
+    div1.innerHTML += '<h3>Ingresa tu documento correctamente</h3>';
+    div1.innerHTML += '<h3>Cuidado</h3>';
+    div1.innerHTML += '<h3>Ingresa tu documento correctamente</h3>';
 }
 
 // Ejercicio 15
@@ -222,7 +222,7 @@ function ejecutarFuncionTres(){
     
     function mostrarMensaje() {
         div1.innerHTML += '<h3>Cuidado</h3>';
-        div2.innerHTML += '<h3>Ingresa tu documento correctamente</h3>';
+        div1.innerHTML += '<h3>Ingresa tu documento correctamente</h3>';
     }
     
     mostrarMensaje();
@@ -281,10 +281,10 @@ function convertirSwitch(){
         }
     }
     
-    var valor = prompt("Ingresa un valor entre 1 y 5", "");
-    valor = parseInt(valor);
-    var r = convertirCastellano(valor);
+    var valor1 = prompt("Ingresa un valor entre 1 y 5", "");
+    valor1 = parseInt(valor1);
+    var r = convertirCastellano(valor1);
     
-    var div1 = document.getElementById('ej18-conversion');
-    div1.innerHTML = '<h3>El número '+valor+' es: '+r+'</h3>';
+    var div1 = document.getElementById('conversion1');
+    div1.innerHTML = '<h3>El número '+valor1+' es: '+r+'</h3>';
 }
