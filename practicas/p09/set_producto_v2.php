@@ -116,8 +116,11 @@
             exit;
         }
 
-        $sql = "INSERT INTO productos (nombre, marca, modelo, precio, detalles, unidades, imagen, eliminado) VALUES (?, ?, ?, ?, ?, ?, ?, 0)";
+        // $sql = "INSERT INTO productos (nombre, marca, modelo, precio, detalles, unidades, imagen, eliminado) VALUES (?, ?, ?, ?, ?, ?, ?, 0)";
         
+        // Nueva query
+        $sql = "INSERT INTO productos (nombre, marca, modelo, precio, detalles, unidades, imagen) VALUES (?, ?, ?, ?, ?, ?, ?)";
+
         $stmt = $link->prepare($sql);
         $stmt->bind_param("sssdsss", $nombre, $marca, $modelo, $precio, $detalles, $unidades, $imagen);
         
