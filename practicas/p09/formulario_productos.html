@@ -1,0 +1,97 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+    <title>Registro de Nuevos Productos</title>
+    <script type="text/javascript">
+        function validarFormulario() {
+            var nombre = document.getElementById('nombre').value.trim();
+            var marca = document.getElementById('marca').value.trim();
+            var modelo = document.getElementById('modelo').value.trim();
+            var precio = document.getElementById('precio').value;
+            var detalles = document.getElementById('detalles').value.trim();
+            var unidades = document.getElementById('unidades').value;
+            
+            // Validar campos obligatorios
+            if (nombre === '' || marca === '' || modelo === '') {
+                alert('Los campos Nombre, Marca y Modelo son obligatorios, por lo que los debes llenar');
+                return false;
+            }
+            
+            // Validar precio
+            if (precio <= 0) {
+                alert('El precio ingresado debe ser mayor a 0');
+                return false;
+            }
+            
+            // Validar unidades
+            if (unidades < 0) {
+                alert('Las unidades no pueden ser negativas');
+                return false;
+            }
+            
+            // Validar longitud de campos
+            if (nombre.length > 100) {
+                alert('El nombre no debe exceder 100 caracteres');
+                return false;
+            }
+            
+            if (modelo.length > 50) {
+                alert('El modelo no debe exceder 50 caracteres');
+                return false;
+            }
+            
+            if (marca.length > 50) {
+                alert('La marca no debe exceder 50 caracteres');
+                return false;
+            }
+            
+            if (detalles.length > 400) {
+                alert('Los detalles no deben exceder 400 caracteres');
+                return false;
+            }
+            
+            return true;
+        }
+    </script>
+</head>
+<body>
+    <h1>Registro de Nuevo Producto</h1>
+
+    <form id="formularioProducto" action="set_producto_v2.php" method="post" onsubmit="return validarFormulario()">
+
+        <fieldset>
+            <legend>Información del Producto</legend>
+            <ul>
+                <li><label for="nombre">Nombre:</label> 
+                    <input type="text" name="nombre" id="nombre" maxlength="100" required></li>
+                
+                <li><label for="marca">Marca:</label> 
+                    <input type="text" name="marca" id="marca" maxlength="50" required></li>
+
+                <li><label for="modelo">Modelo:</label> 
+                    <input type="text" name="modelo" id="modelo" maxlength="50" required></li>
+                
+                <li><label for="precio">Precio:</label> 
+                    <input type="number" name="precio" id="precio" step="0.01" min="0.01" required></li>
+                
+                <li><label for="detalles">Detalles:</label><br>
+                    <textarea name="detalles" id="detalles" rows="4" cols="60" maxlength="400" placeholder="Descripción del producto (máximo 255 caracteres)"></textarea></li>
+                
+                <li><label for="unidades">Unidades:</label> 
+                    <input type="number" name="unidades" id="unidades" min="0" required></li>
+                
+                <li><label for="imagen">Imagen:</label> 
+                    <input type="text" name="imagen" id="imagen" value="img/default.png"></li>
+            </ul>
+        </fieldset>
+
+        <p>
+            <input type="submit" value="Registrar Producto">
+            <input type="reset" value="Limpiar">
+        </p>
+
+    </form>
+</body>
+</html>
