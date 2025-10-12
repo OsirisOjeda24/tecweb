@@ -1,9 +1,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" lang="es" xml:lang="es">
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
     <meta http-equiv="content-type" content="text/html;charset=utf-8" />
-    <title><?php echo isset($_GET['id']) ? 'Editar' : 'Registrar'; ?> Producto Electrónico</title>
+    <title>Editar Producto Electrónico</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <script type="text/javascript">
         function validarFormulario() {
             var nombre = document.getElementById('nombre').value.trim();
@@ -22,24 +23,24 @@
                 errores[0].parentNode.removeChild(errores[0]);
             }
             
-            // a. Validar nombre: requerido y máximo 100 caracteres
+            // a. Validar nombre: Elemento necesario y máximo de 100 caracteres
             if (nombre === '') {
-                mostrarError('nombre', 'El nombre es obligatorio');
+                mostrarError('nombre', 'El nombre es obligatorio, llene el campo');
                 esValido = false;
             } else if (nombre.length > 100) {
                 mostrarError('nombre', 'El nombre no debe tener más de 100 caracteres');
                 esValido = false;
             }
             
-            // b. Validar marca: requerida y seleccionada de lista
+            // b. Validar marca: Elemento necesario y que se pueda seleccionar de una lista
             if (marca === '') {
-                mostrarError('marca', 'Debe seleccionar una marca');
+                mostrarError('marca', 'Debes seleccionar una marca de la lista');
                 esValido = false;
             }
             
-            // c. Validar modelo: requerido, alfanumérico y máximo 25 caracteres
+            // c. Validar modelo: Elemento necesario, alfanumérico y máximo de 25 caracteres
             if (modelo === '') {
-                mostrarError('modelo', 'El modelo es obligatorio');
+                mostrarError('modelo', 'El modelo es obligatorio para el registro');
                 esValido = false;
             } else if (!/^[a-zA-Z0-9\s]+$/.test(modelo)) {
                 mostrarError('modelo', 'El modelo debe ser alfanumérico');
@@ -49,7 +50,7 @@
                 esValido = false;
             }
             
-            // d. Validar precio: requerido y mayor a 99.99
+            // d. Validar precio: Elemento necesario y mayor a 99.99
             if (isNaN(precio)) {
                 mostrarError('precio', 'El precio es obligatorio');
                 esValido = false;
@@ -58,28 +59,28 @@
                 esValido = false;
             }
             
-            // e. Validar detalles: opcional y máximo 250 caracteres
+            // e. Validar detalles: Elemento necesario y máximo de 250 caracteres
             if (detalles.length > 250) {
                 mostrarError('detalles', 'Los detalles no deben tener más de 250 caracteres');
                 esValido = false;
             }
             
-            // f. Validar unidades: requeridas y mayor o igual a 0
+            // f. Validar unidades: Elemento necesario y mayor o igual a 0
             if (isNaN(unidades)) {
-                mostrarError('unidades', 'Las unidades son obligatorias');
+                mostrarError('unidades', 'Las unidades son obligatorias para el registro');
                 esValido = false;
             } else if (unidades < 0) {
                 mostrarError('unidades', 'Las unidades no pueden ser negativas');
                 esValido = false;
             }
             
-            // g. Validar imagen: opcional, pero si está vacío usar imagen por defecto
+            // g. Validar imagen: Elemento opcional, pero si está vacío usar imagen por defecto
             if (imagen === '') {
                 document.getElementById('imagen').value = 'img/default.png';
             }
             
             if (!esValido) {
-                alert('Por favor, corrija los errores en el formulario');
+                alert('Por favor, cambie los datos para corregir los errores en el formulario');
             }
             
             return esValido;
@@ -92,121 +93,148 @@
             error.textContent = mensaje;
             campo.parentNode.appendChild(error);
         }
+
+        // Función para cargar los datos del producto cuando se edita
+        function cargarDatosProducto() {
+            // Obtener el ID del producto de la URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const productId = urlParams.get('id');
+            
+            if (productId) {
+                document.getElementById('productId').value = productId;
+                // Aquí se cargarían los datos del producto desde la base de datos
+                // Por ahora simulamos la carga
+                console.log('Cargando datos del producto ID:', productId);
+            }
+        }
+
+        // Cargar datos cuando la página esté lista
+        window.onload = cargarDatosProducto;
     </script>
+    <style type="text/css">
+        .error {
+            color: red;
+            font-size: 0.9em;
+            margin-left: 10px;
+        }
+        .form-container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .header-edicion {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .btn-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
-    <?php
-    $producto = null;
-    $esEdicion = false;
-    
-    // Verificar si estamos editando un producto existente
-    if(isset($_GET['id'])) {
-        $esEdicion = true;
-        $id = $_GET['id'];
-        
-        // Conexión a la base de datos
-        @$link = new mysqli('localhost', 'root', 'Oross2414', 'marketzone');
-        
-        if ($link->connect_errno) {
-            die('Falló la conexión: '.$link->connect_error);
-        }
-        
-        // Obtener el producto por ID
-        $stmt = $link->prepare("SELECT * FROM productos WHERE id = ?");
-        $stmt->bind_param("i", $id);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        
-        if($result->num_rows > 0) {
-            $producto = $result->fetch_assoc();
-        } else {
-            echo "<script>alert('Producto no encontrado'); window.location.href = 'javascript:history.back()';</script>";
-            exit;
-        }
-        
-        $stmt->close();
-        $link->close();
-    }
-    ?>
-    
-    <div class="form-header">
-        <h1><?php echo $esEdicion ? 'Editar Producto Electrónico' : 'Registro de Nuevo Producto Electrónico'; ?></h1>
-        <?php if($esEdicion && isset($producto['id'])): ?>
-            <p>Editando producto ID: <?php echo $producto['id']; ?></p>
-        <?php endif; ?>
+    <div class="container">
+        <div class="form-container">
+            <div class="header-edicion">
+                <h2 class="text-center">Editar Producto Electrónico</h2>
+                <p class="text-center mb-0">Modifique los datos del producto según sea necesario</p>
+            </div>
+
+            <form id="formularioProducto" action="formulario_productos_v2.php" method="post" onsubmit="return validarFormulario()">
+                <!-- Campo oculto para el ID del producto -->
+                <input type="hidden" name="id" id="productId" value="">
+
+                <div class="form-group">
+                    <label for="nombre" class="font-weight-bold">Nombre:</label> 
+                    <input type="text" name="nombre" id="nombre" class="form-control" maxlength="100" required>
+                    <small class="form-text text-muted">Máximo 100 caracteres</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="marca" class="font-weight-bold">Marca:</label> 
+                    <select name="marca" id="marca" class="form-control" required>
+                        <option value="">Seleccione la marca de su preferencia</option>
+                        <option value="Samsung">Samsung</option>
+                        <option value="Apple">Apple</option>
+                        <option value="Sony">Sony</option>
+                        <option value="LG">LG</option>
+                        <option value="HP">HP</option>
+                        <option value="Dell">Dell</option>
+                        <option value="Asus">Asus</option>
+                        <option value="Lenovo">Lenovo</option>
+                        <option value="Otra">Otra</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="modelo" class="font-weight-bold">Modelo:</label> 
+                    <input type="text" name="modelo" id="modelo" class="form-control" maxlength="25" required>
+                    <small class="form-text text-muted">Solo caracteres alfanuméricos, máximo 25 caracteres</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="precio" class="font-weight-bold">Precio:</label> 
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">$</span>
+                        </div>
+                        <input type="number" name="precio" id="precio" class="form-control" step="0.01" min="100" required>
+                    </div>
+                    <small class="form-text text-muted">Debe ser mayor a $99.99</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="detalles" class="font-weight-bold">Detalles:</label>
+                    <textarea name="detalles" id="detalles" class="form-control" rows="4" maxlength="250" placeholder="Descripción del producto (máximo 250 caracteres)"></textarea>
+                    <small class="form-text text-muted"><span id="contadorCaracteres">0</span>/250 caracteres</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="unidades" class="font-weight-bold">Unidades:</label> 
+                    <input type="number" name="unidades" id="unidades" class="form-control" min="0" required>
+                    <small class="form-text text-muted">No puede ser negativo</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="imagen" class="font-weight-bold">Imagen:</label> 
+                    <input type="text" name="imagen" id="imagen" class="form-control" placeholder="img/default.png">
+                    <small class="form-text text-muted">URL de la imagen. Si está vacío, se usará la imagen por defecto</small>
+                </div>
+
+                <div class="btn-container">
+                    <input type="submit" value="Actualizar Producto" class="btn btn-primary btn-lg">
+                    <input type="reset" value="Limpiar" class="btn btn-secondary btn-lg">
+                    <a href="javascript:history.back()" class="btn btn-outline-secondary btn-lg">Cancelar</a>
+                </div>
+            </form>
+        </div>
     </div>
 
-    <form id="formularioProducto" action="<?php echo $esEdicion ? 'update_producto.php' : 'set_producto_v2.php'; ?>" method="post" onsubmit="return validarFormulario()">
-        
-        <?php if($esEdicion && isset($producto['id'])): ?>
-            <input type="hidden" name="id" value="<?php echo $producto['id']; ?>">
-        <?php endif; ?>
+    <script>
+        // Contador de caracteres para detalles
+        document.getElementById('detalles').addEventListener('input', function() {
+            const contador = document.getElementById('contadorCaracteres');
+            contador.textContent = this.value.length;
+            
+            if (this.value.length > 250) {
+                contador.style.color = 'red';
+            } else {
+                contador.style.color = '#6c757d';
+            }
+        });
 
-        <fieldset>
-            <legend>Información del Producto</legend>
-            <ul>
-                <li>
-                    <label for="nombre" class="required">Nombre:</label> 
-                    <input type="text" name="nombre" id="nombre" maxlength="100" required 
-                           value="<?php echo $esEdicion && isset($producto['nombre']) ? htmlspecialchars($producto['nombre']) : ''; ?>">
-                </li>
-                
-                <li>
-                    <label for="marca" class="required">Marca:</label> 
-                    <select name="marca" id="marca" required>
-                        <option value="">Seleccione la marca</option>
-                        <option value="Samsung" <?php echo ($esEdicion && isset($producto['marca']) && $producto['marca'] == 'Samsung') ? 'selected' : ''; ?>>Samsung</option>
-                        <option value="Apple" <?php echo ($esEdicion && isset($producto['marca']) && $producto['marca'] == 'Apple') ? 'selected' : ''; ?>>Apple</option>
-                        <option value="Sony" <?php echo ($esEdicion && isset($producto['marca']) && $producto['marca'] == 'Sony') ? 'selected' : ''; ?>>Sony</option>
-                        <option value="LG" <?php echo ($esEdicion && isset($producto['marca']) && $producto['marca'] == 'LG') ? 'selected' : ''; ?>>LG</option>
-                        <option value="HP" <?php echo ($esEdicion && isset($producto['marca']) && $producto['marca'] == 'HP') ? 'selected' : ''; ?>>HP</option>
-                        <option value="Dell" <?php echo ($esEdicion && isset($producto['marca']) && $producto['marca'] == 'Dell') ? 'selected' : ''; ?>>Dell</option>
-                        <option value="Asus" <?php echo ($esEdicion && isset($producto['marca']) && $producto['marca'] == 'Asus') ? 'selected' : ''; ?>>Asus</option>
-                        <option value="Lenovo" <?php echo ($esEdicion && isset($producto['marca']) && $producto['marca'] == 'Lenovo') ? 'selected' : ''; ?>>Lenovo</option>
-                        <option value="Otra" <?php echo ($esEdicion && isset($producto['marca']) && $producto['marca'] == 'Otra') ? 'selected' : ''; ?>>Otra</option>
-                    </select>
-                </li>
-
-                <li>
-                    <label for="modelo" class="required">Modelo:</label> 
-                    <input type="text" name="modelo" id="modelo" maxlength="25" required 
-                           value="<?php echo $esEdicion && isset($producto['modelo']) ? htmlspecialchars($producto['modelo']) : ''; ?>">
-                </li>
-                
-                <li>
-                    <label for="precio" class="required">Precio:</label> 
-                    <input type="number" name="precio" id="precio" step="0.01" min="100" required 
-                           value="<?php echo $esEdicion && isset($producto['precio']) ? $producto['precio'] : ''; ?>">
-                </li>
-                
-                <li>
-                    <label for="detalles">Detalles:</label><br>
-                    <textarea name="detalles" id="detalles" rows="4" cols="60" maxlength="250" 
-                              placeholder="Descripción del producto (máximo 250 caracteres)"><?php echo $esEdicion && isset($producto['detalles']) ? htmlspecialchars($producto['detalles']) : ''; ?></textarea>
-                </li>
-                
-                <li>
-                    <label for="unidades" class="required">Unidades:</label> 
-                    <input type="number" name="unidades" id="unidades" min="0" required 
-                           value="<?php echo $esEdicion && isset($producto['unidades']) ? $producto['unidades'] : ''; ?>">
-                </li>
-                
-                <li>
-                    <label for="imagen">Imagen:</label> 
-                    <input type="text" name="imagen" id="imagen" placeholder="img/default.png" 
-                           value="<?php echo $esEdicion && isset($producto['imagen']) ? htmlspecialchars($producto['imagen']) : ''; ?>">
-                </li>
-            </ul>
-        </fieldset>
-
-        <p>
-            <input type="submit" value="<?php echo $esEdicion ? 'Actualizar Producto' : 'Registrar Producto'; ?>">
-            <input type="reset" value="Limpiar">
-            <?php if($esEdicion): ?>
-                <a href="javascript:history.back()" class="btn-cancelar">Cancelar</a>
-            <?php endif; ?>
-        </p>
-
-    </form>
+        // Inicializar contador
+        document.getElementById('contadorCaracteres').textContent = 
+            document.getElementById('detalles').value.length;
+    </script>
 </body>
 </html>

@@ -48,65 +48,61 @@
 	?>
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-		<title>Productos</title>
-		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+		<title>Producto</title>
+		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+		<style>
+			.btn-edit {
+				margin: 2px;
+			}
+		</style>
 	</head>
 	<body>
-		<div class="container">
-			<h3 class="mt-4">PRODUCTOS</h3>
+		<h3>PRODUCTOS</h3>
 
-			<br/>
-			
-			<?php if( count($productos) > 0 ) : ?>
+		<br/>
+		
+		<?php if( count($productos) > 0 ) : ?>
 
-				<table class="table table-bordered">
-					<thead class="thead-dark">
-						<tr>
-						<th scope="col">#</th>
-						<th scope="col">Nombre</th>
-						<th scope="col">Marca</th>
-						<th scope="col">Modelo</th>
-						<th scope="col">Precio</th>
-						<th scope="col">Unidades</th>
-						<th scope="col">Detalles</th>
-						<th scope="col">Imagen</th>
-						<th scope="col">Acciones</th>
-						</tr>
-					</thead>
-					<tbody>
-                        <?php foreach($productos as $row): ?>
-                            <tr>
-                                <th scope="row"><?= $row['id'] ?></th>
-                                <td><?= $row['nombre'] ?></td>
-                                <td><?= $row['marca'] ?></td>
-                                <td><?= $row['modelo'] ?></td>
-                                <td>$<?= number_format($row['precio'], 2) ?></td>
-                                <td><?= $row['unidades'] ?></td>
-                                <td><?= utf8_encode($row['detalles']) ?></td>
-                                <td>
-									<?php if(!empty($row['imagen']) && $row['imagen'] != 'img/default.png'): ?>
-										<img src="<?= $row['imagen'] ?>" width="60" height="60" style="object-fit: cover;">
-									<?php else: ?>
-										<span class="badge badge-secondary">Sin imagen</span>
-									<?php endif; ?>
-								</td>
-                                <td>
-                                    <a href="formulario_productos_v2.php?id=<?= $row['id'] ?>" class="btn-edit">
-                                        Editar
-                                    </a>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-					</tbody>
-				</table>
+			<table class="table">
+				<thead class="thead-dark">
+					<tr>
+					<th scope="col">#</th>
+					<th scope="col">Nombre</th>
+					<th scope="col">Marca</th>
+					<th scope="col">Modelo</th>
+					<th scope="col">Precio</th>
+					<th scope="col">Unidades</th>
+					<th scope="col">Detalles</th>
+					<th scope="col">Imagen</th>
+					<th scope="col">Acciones</th>
+					</tr>
+				</thead>
+				<tbody>
+                    <?php foreach($productos as $row): ?>
+                        <tr>
+                            <th scope="row"><?= $row['id'] ?></th>
+                            <td><?= $row['nombre'] ?></td>
+                            <td><?= $row['marca'] ?></td>
+                            <td><?= $row['modelo'] ?></td>
+                            <td>$<?= number_format($row['precio'], 2) ?></td>
+                            <td><?= $row['unidades'] ?></td>
+                            <td><?= utf8_encode($row['detalles']) ?></td>
+                            <td><img src="<?= $row['imagen'] ?>" width="50" height="50"></td>
+                            <td>
+                                <a href="formulario_editar_producto.php?id=<?= $row['id'] ?>" class="btn btn-warning btn-sm btn-edit">Editar</a>
+                                <a href="eliminar_producto.php?id=<?= $row['id'] ?>" class="btn btn-danger btn-sm btn-edit" onclick="return confirm('¿Estás seguro de eliminar este producto?')">Eliminar</a>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+				</tbody>
+			</table>
 
-			<?php else : ?>
+		<?php else : ?>
 
-				 <script>
-					alert('No se encontraron productos con <?= $tope ?> unidades o menos.');
-				 </script>
+			 <script>
+                alert('No se encontraron productos con <?= $tope ?> unidades o menos.');
+             </script>
 
-			<?php endif; ?>
-		</div>
+		<?php endif; ?>
 	</body>
 </html>

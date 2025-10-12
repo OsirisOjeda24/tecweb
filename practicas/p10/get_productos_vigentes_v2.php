@@ -50,7 +50,7 @@
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 		<title>Productos Vigentes</title>
-		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 		<style>
 			.header-vigentes {
 				background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
@@ -77,18 +77,12 @@
 				margin-bottom: 20px;
 				border-left: 4px solid #2196f3;
 			}
-			.btn-edit {
-				background-color: #007bff;
-				color: white;
-				padding: 5px 10px;
-				border-radius: 4px;
-				text-decoration: none;
-				font-size: 14px;
+			.btn-action {
+				margin: 2px;
+				min-width: 70px;
 			}
-			.btn-edit:hover {
-				background-color: #0056b3;
-				color: white;
-				text-decoration: none;
+			.actions-column {
+				min-width: 160px;
 			}
 		</style>
 	</head>
@@ -103,7 +97,8 @@
 				<strong>Información de la consulta:</strong><br>
 				- Filtro: Unidades ≤ <?= $tope ?><br>
 				- Estado: Eliminado = 0 (Productos activos)<br>
-				- Productos encontrados: <strong><?= count($productos) ?></strong>
+				- Productos encontrados: <strong><?= count($productos) ?></strong><br>
+				- <em>Ahora con funcionalidad de edición</em>
 			</div>
 			
 			<?php if( count($productos) > 0 ) : ?>
@@ -119,7 +114,7 @@
 						<th scope="col">Unidades</th>
 						<th scope="col">Detalles</th>
 						<th scope="col">Imagen</th>
-						<th scope="col">Acciones</th>
+						<th scope="col" class="actions-column">Acciones</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -146,9 +141,10 @@
 									<?php endif; ?>
 								</td>
 								<td>
-									<a href="formulario_productos_v2.php?id=<?= $row['id'] ?>" class="btn-edit">
-										Editar
-									</a>
+									<div class="d-flex flex-column">
+										<a href="formulario_editar_producto.php?id=<?= $row['id'] ?>" class="btn btn-warning btn-sm btn-action">Editar</a>
+										<a href="eliminar_producto.php?id=<?= $row['id'] ?>" class="btn btn-danger btn-sm btn-action" onclick="return confirm('¿Estás seguro de eliminar este producto?')">Eliminar</a>
+									</div>
 								</td>
 							</tr>
 						<?php endforeach; ?>
@@ -157,6 +153,7 @@
 
 				<div class="alert alert-success">
 					<strong>Mostrando <?= count($productos) ?> productos vigentes</strong> - Los productos marcados como eliminados (eliminado = 1) no se muestran en esta lista.
+					<br><strong>Nueva funcionalidad:</strong> Ahora puedes editar o eliminar cualquier producto desde esta interfaz.
 				</div>
 
 			<?php else : ?>
