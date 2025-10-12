@@ -94,7 +94,7 @@
             campo.parentNode.appendChild(error);
         }
 
-        // Función para cargar los datos del producto cuando se edita
+        // Función para cargar los datos del producto desde el servidor
         function cargarDatosProducto() {
             // Obtener el ID del producto de la URL
             const urlParams = new URLSearchParams(window.location.search);
@@ -102,9 +102,51 @@
             
             if (productId) {
                 document.getElementById('productId').value = productId;
-                // Aquí se cargarían los datos del producto desde la base de datos
-                // Por ahora simulamos la carga
-                console.log('Cargando datos del producto ID:', productId);
+                
+                // Hacer petición al servidor para obtener los datos del producto
+                fetch(`get_producto_data.php?id=${productId}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Error al cargar los datos del producto');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            // Llenar el formulario con los datos del producto
+                            document.getElementById('nombre').value = data.producto.nombre || '';
+                            document.getElementById('marca').value = data.producto.marca || '';
+                            document.getElementById('modelo').value = data.producto.modelo || '';
+                            document.getElementById('precio').value = data.producto.precio || '';
+                            document.getElementById('detalles').value = data.producto.detalles || '';
+                            document.getElementById('unidades').value = data.producto.unidades || '';
+                            document.getElementById('imagen').value = data.producto.imagen || 'img/default.png';
+                            
+                            // Actualizar contador de caracteres
+                            document.getElementById('contadorCaracteres').textContent = 
+                                document.getElementById('detalles').value.length;
+                            
+                            // Mostrar información del producto cargado
+                            document.getElementById('productInfo').innerHTML = 
+                                `<strong>Editando producto:</strong> ID ${data.producto.id} - ${data.producto.nombre}`;
+                            document.getElementById('productInfo').style.display = 'block';
+                        } else {
+                            throw new Error(data.message || 'Error al cargar el producto');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Error al cargar los datos del producto: ' + error.message);
+                        document.getElementById('productInfo').innerHTML = 
+                            `<strong>Error:</strong> ${error.message}`;
+                        document.getElementById('productInfo').className = 'alert alert-danger';
+                        document.getElementById('productInfo').style.display = 'block';
+                    });
+            } else {
+                document.getElementById('productInfo').innerHTML = 
+                    '<strong>Error:</strong> No se proporcionó ID de producto';
+                document.getElementById('productInfo').className = 'alert alert-danger';
+                document.getElementById('productInfo').style.display = 'block';
             }
         }
 
@@ -139,6 +181,18 @@
             text-align: center;
             margin-top: 20px;
         }
+        .product-info {
+            background-color: #e8f5e8;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border-left: 4px solid #28a745;
+            display: none;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
     </style>
 </head>
 <body>
@@ -149,7 +203,18 @@
                 <p class="text-center mb-0">Modifique los datos del producto según sea necesario</p>
             </div>
 
-            <form id="formularioProducto" action="formulario_productos_v2.php" method="post" onsubmit="return validarFormulario()">
+            <div id="productInfo" class="product-info">
+                <!-- Aquí se mostrará la información del producto cargado -->
+            </div>
+
+            <div id="loading" class="loading">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="sr-only">Cargando...</span>
+                </div>
+                <p>Cargando datos del producto...</p>
+            </div>
+
+            <form id="formularioProducto" action="update_producto.php" method="post" onsubmit="return validarFormulario()" style="display: none;">
                 <!-- Campo oculto para el ID del producto -->
                 <input type="hidden" name="id" id="productId" value="">
 
@@ -212,7 +277,7 @@
 
                 <div class="btn-container">
                     <input type="submit" value="Actualizar Producto" class="btn btn-primary btn-lg">
-                    <input type="reset" value="Limpiar" class="btn btn-secondary btn-lg">
+                    <input type="reset" value="Restablecer" class="btn btn-secondary btn-lg">
                     <a href="javascript:history.back()" class="btn btn-outline-secondary btn-lg">Cancelar</a>
                 </div>
             </form>
@@ -232,9 +297,24 @@
             }
         });
 
-        // Inicializar contador
-        document.getElementById('contadorCaracteres').textContent = 
-            document.getElementById('detalles').value.length;
+        // Ocultar loading y mostrar formulario cuando se carguen los datos
+        function mostrarFormulario() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('formularioProducto').style.display = 'block';
+        }
+
+        // Modificar la función cargarDatosProducto para mostrar el formulario al final
+        const originalCargarDatos = cargarDatosProducto;
+        cargarDatosProducto = function() {
+            originalCargarDatos();
+            // Mostrar formulario después de un tiempo como fallback
+            setTimeout(mostrarFormulario, 2000);
+        };
+
+        // Mostrar formulario cuando se complete la carga de datos
+        window.addEventListener('DOMContentLoaded', function() {
+            // Esto se ejecutará cuando el DOM esté listo
+        });
     </script>
 </body>
 </html>
