@@ -1,0 +1,157 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+    <title>Registro de Nuevos Productos Electrónicos</title>
+    <script type="text/javascript">
+        function validarFormulario() {
+            var nombre = document.getElementById('nombre').value.trim();
+            var marca = document.getElementById('marca').value;
+            var modelo = document.getElementById('modelo').value.trim();
+            var precio = parseFloat(document.getElementById('precio').value);
+            var detalles = document.getElementById('detalles').value.trim();
+            var unidades = parseInt(document.getElementById('unidades').value);
+            var imagen = document.getElementById('imagen').value.trim();
+              
+            var esValido = true;
+            
+            // Limpiar errores previos
+            var errores = document.getElementsByClassName('error');
+            while(errores.length > 0) {
+                errores[0].parentNode.removeChild(errores[0]);
+            }
+            
+            // a. Validar nombre: Elemento necesario y máximo de 100 caracteres
+            if (nombre === '') {
+                mostrarError('nombre', 'El nombre es obligatorio, llene el campo');
+                esValido = false;
+            } else if (nombre.length > 100) {
+                mostrarError('nombre', 'El nombre no debe tener más de 100 caracteres');
+                esValido = false;
+            }
+            
+            // b. Validar marca: Elemento necesario y que se pueda seleccionar de una lista
+            if (marca === '') {
+                mostrarError('marca', 'Debes seleccionar una marca de la lista');
+                esValido = false;
+            }
+            
+            // c. Validar modelo: Elemento necesario, alfanumérico y máximo de 25 caracteres
+            if (modelo === '') {
+                mostrarError('modelo', 'El modelo es obligatorio para el registro');
+                esValido = false;
+            } else if (!/^[a-zA-Z0-9\s]+$/.test(modelo)) {
+                mostrarError('modelo', 'El modelo debe ser alfanumérico');
+                esValido = false;
+            } else if (modelo.length > 25) {
+                mostrarError('modelo', 'El modelo no debe tener más de 25 caracteres');
+                esValido = false;
+            }
+            
+            // d. Validar precio: Elemento necesario y mayor a 99.99
+            if (isNaN(precio)) {
+                mostrarError('precio', 'El precio es obligatorio');
+                esValido = false;
+            } else if (precio <= 99.99) {
+                mostrarError('precio', 'El precio debe ser mayor a 99.99');
+                esValido = false;
+            }
+            
+            // e. Validar detalles: Elemento necesario y máximo de 250 caracteres
+            if (detalles.length > 250) {
+                mostrarError('detalles', 'Los detalles no deben tener más de 250 caracteres');
+                esValido = false;
+            }
+            
+            // f. Validar unidades: Elemento necesario y mayor o igual a 0
+            if (isNaN(unidades)) {
+                mostrarError('unidades', 'Las unidades son obligatorias para el registro');
+                esValido = false;
+            } else if (unidades < 0) {
+                mostrarError('unidades', 'Las unidades no pueden ser negativas');
+                esValido = false;
+            }
+            
+            // g. Validar imagen: Elemento opcional, pero si está vacío usar imagen por defecto
+            if (imagen === '') {
+                document.getElementById('imagen').value = 'img/default.png';
+            }
+            
+            if (!esValido) {
+                alert('Por favor, cambie los datos para corregir los errores en el formulario');
+            }
+            
+            return esValido;
+        }
+        
+        function mostrarError(campoId, mensaje) {
+            var campo = document.getElementById(campoId);
+            var error = document.createElement('span');
+            error.className = 'error';
+            error.textContent = mensaje;
+            campo.parentNode.appendChild(error);
+        }
+    </script>
+    <style type="text/css">
+        .error {
+            color: red;
+            font-size: 0.9em;
+            margin-left: 10px;
+        }
+        li {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Registro de Nuevo Producto Electrónico</h1>
+
+    <form id="formularioProducto" action="set_producto_v2.php" method="post" onsubmit="return validarFormulario()">
+
+        <fieldset>
+            <legend>Información del Producto</legend>
+            <ul>
+                <li><label for="nombre">Nombre:</label> 
+                    <input type="text" name="nombre" id="nombre" maxlength="100" required></li>
+                
+                <li><label for="marca">Marca:</label> 
+                    <select name="marca" id="marca" required>
+                        <option value="">Seleccione la marca de su preferencia</option>
+                        <option value="Samsung">Samsung</option>
+                        <option value="Apple">Apple</option>
+                        <option value="Sony">Sony</option>
+                        <option value="LG">LG</option>
+                        <option value="HP">HP</option>
+                        <option value="Dell">Dell</option>
+                        <option value="Asus">Asus</option>
+                        <option value="Lenovo">Lenovo</option>
+                        <option value="Otra">Otra</option>
+                    </select>
+                </li>
+
+                <li><label for="modelo">Modelo:</label> 
+                    <input type="text" name="modelo" id="modelo" maxlength="25" required></li>
+                
+                <li><label for="precio">Precio:</label> 
+                    <input type="number" name="precio" id="precio" step="0.01" min="100" required></li>
+                
+                <li><label for="detalles">Detalles:</label><br>
+                    <textarea name="detalles" id="detalles" rows="4" cols="60" maxlength="250" placeholder="Descripción del producto (máximo 250 caracteres)"></textarea></li>
+                
+                <li><label for="unidades">Unidades:</label> 
+                    <input type="number" name="unidades" id="unidades" min="0" required></li>
+                
+                <li><label for="imagen">Imagen:</label> 
+                    <input type="text" name="imagen" id="imagen" placeholder="img/default.png"></li>
+            </ul>
+        </fieldset>
+
+        <p>
+            <input type="submit" value="Registrar Producto">
+            <input type="reset" value="Limpiar">
+        </p>
+
+    </form>
+</body>
+</html>
