@@ -4,7 +4,6 @@
 <head>
     <meta http-equiv="content-type" content="text/html;charset=utf-8" />
     <title>Editar Producto Electrónico</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <script type="text/javascript">
         function validarFormulario() {
             var nombre = document.getElementById('nombre').value.trim();
@@ -94,64 +93,49 @@
             campo.parentNode.appendChild(error);
         }
 
-        // Función para cargar los datos del producto desde el servidor
+        // Función para cargar los datos del producto desde la URL
         function cargarDatosProducto() {
-            // Obtener el ID del producto de la URL
             const urlParams = new URLSearchParams(window.location.search);
             const productId = urlParams.get('id');
+            const action = urlParams.get('action');
             
-            if (productId) {
+            if (action === 'edit' && productId) {
                 document.getElementById('productId').value = productId;
+                document.getElementById('formTitle').textContent = 'Editar Producto Electrónico';
+                document.getElementById('submitButton').value = 'Actualizar Producto';
                 
-                // Hacer petición al servidor para obtener los datos del producto
-                fetch(`get_producto_data.php?id=${productId}`)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Error al cargar los datos del producto');
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (data.success) {
-                            // Llenar el formulario con los datos del producto
-                            document.getElementById('nombre').value = data.producto.nombre || '';
-                            document.getElementById('marca').value = data.producto.marca || '';
-                            document.getElementById('modelo').value = data.producto.modelo || '';
-                            document.getElementById('precio').value = data.producto.precio || '';
-                            document.getElementById('detalles').value = data.producto.detalles || '';
-                            document.getElementById('unidades').value = data.producto.unidades || '';
-                            document.getElementById('imagen').value = data.producto.imagen || 'img/default.png';
-                            
-                            // Actualizar contador de caracteres
-                            document.getElementById('contadorCaracteres').textContent = 
-                                document.getElementById('detalles').value.length;
-                            
-                            // Mostrar información del producto cargado
-                            document.getElementById('productInfo').innerHTML = 
-                                `<strong>Editando producto:</strong> ID ${data.producto.id} - ${data.producto.nombre}`;
-                            document.getElementById('productInfo').style.display = 'block';
-                        } else {
-                            throw new Error(data.message || 'Error al cargar el producto');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        alert('Error al cargar los datos del producto: ' + error.message);
-                        document.getElementById('productInfo').innerHTML = 
-                            `<strong>Error:</strong> ${error.message}`;
-                        document.getElementById('productInfo').className = 'alert alert-danger';
-                        document.getElementById('productInfo').style.display = 'block';
-                    });
-            } else {
-                document.getElementById('productInfo').innerHTML = 
-                    '<strong>Error:</strong> No se proporcionó ID de producto';
-                document.getElementById('productInfo').className = 'alert alert-danger';
-                document.getElementById('productInfo').style.display = 'block';
+                // Mostrar mensaje de carga
+                var messagesDiv = document.getElementById('messages');
+                if (messagesDiv) {
+                    messagesDiv.innerHTML = '<div class="warning">Cargando datos del producto ID: ' + productId + '</div>';
+                }
+                
+                // Simular carga de datos (en un caso real, harías una petición AJAX)
+                setTimeout(() => {
+                    if (messagesDiv) {
+                        messagesDiv.innerHTML = '<div class="success">Complete el formulario y haga clic en Actualizar Producto</div>';
+                    }
+                }, 1000);
             }
         }
 
-        // Cargar datos cuando la página esté lista
-        window.onload = cargarDatosProducto;
+        // Contador de caracteres para detalles
+        function inicializarContador() {
+            var detalles = document.getElementById('detalles');
+            var contador = document.getElementById('contadorCaracteres');
+            
+            if (detalles && contador) {
+                detalles.addEventListener('input', function() {
+                    contador.textContent = this.value.length;
+                });
+            }
+        }
+
+        // Inicializar cuando la página cargue
+        window.onload = function() {
+            cargarDatosProducto();
+            inicializarContador();
+        }
     </script>
     <style type="text/css">
         .error {
@@ -159,74 +143,49 @@
             font-size: 0.9em;
             margin-left: 10px;
         }
-        .form-container {
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: #f8f9fa;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        .header-edicion {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        .btn-container {
-            text-align: center;
-            margin-top: 20px;
-        }
-        .product-info {
-            background-color: #e8f5e8;
+        .success {
+            background-color: #d4edda;
+            color: #155724;
             padding: 10px;
-            border-radius: 5px;
+            border: 1px solid #c3e6cb;
             margin-bottom: 15px;
-            border-left: 4px solid #28a745;
-            display: none;
         }
-        .loading {
-            text-align: center;
+        .warning {
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 10px;
+            border: 1px solid #ffeaa7;
+            margin-bottom: 15px;
+        }
+        li {
+            margin-bottom: 10px;
+        }
+        fieldset {
+            margin-bottom: 20px;
             padding: 20px;
+        }
+        legend {
+            font-weight: bold;
+            font-size: 1.2em;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="form-container">
-            <div class="header-edicion">
-                <h2 class="text-center">Editar Producto Electrónico</h2>
-                <p class="text-center mb-0">Modifique los datos del producto según sea necesario</p>
-            </div>
+    <h1 id="formTitle">Editar Producto Electrónico</h1>
 
-            <div id="productInfo" class="product-info">
-                <!-- Aquí se mostrará la información del producto cargado -->
-            </div>
+    <div id="messages"></div>
 
-            <div id="loading" class="loading">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="sr-only">Cargando...</span>
-                </div>
-                <p>Cargando datos del producto...</p>
-            </div>
+    <form id="formularioProducto" action="update_producto.php" method="post" onsubmit="return validarFormulario()">
+        <input type="hidden" name="id" id="productId">
 
-            <form id="formularioProducto" action="update_producto.php" method="post" onsubmit="return validarFormulario()" style="display: none;">
-                <!-- Campo oculto para el ID del producto -->
-                <input type="hidden" name="id" id="productId" value="">
-
-                <div class="form-group">
-                    <label for="nombre" class="font-weight-bold">Nombre:</label> 
-                    <input type="text" name="nombre" id="nombre" class="form-control" maxlength="100" required>
-                    <small class="form-text text-muted">Máximo 100 caracteres</small>
-                </div>
-
-                <div class="form-group">
-                    <label for="marca" class="font-weight-bold">Marca:</label> 
-                    <select name="marca" id="marca" class="form-control" required>
+        <fieldset>
+            <legend>Información del Producto</legend>
+            <ul>
+                <li><label for="nombre">Nombre:</label> 
+                    <input type="text" name="nombre" id="nombre" maxlength="100" required></li>
+                
+                <li><label for="marca">Marca:</label> 
+                    <select name="marca" id="marca" required>
                         <option value="">Seleccione la marca de su preferencia</option>
                         <option value="Samsung">Samsung</option>
                         <option value="Apple">Apple</option>
@@ -238,83 +197,32 @@
                         <option value="Lenovo">Lenovo</option>
                         <option value="Otra">Otra</option>
                     </select>
-                </div>
+                </li>
 
-                <div class="form-group">
-                    <label for="modelo" class="font-weight-bold">Modelo:</label> 
-                    <input type="text" name="modelo" id="modelo" class="form-control" maxlength="25" required>
-                    <small class="form-text text-muted">Solo caracteres alfanuméricos, máximo 25 caracteres</small>
-                </div>
+                <li><label for="modelo">Modelo:</label> 
+                    <input type="text" name="modelo" id="modelo" maxlength="25" required></li>
+                
+                <li><label for="precio">Precio:</label> 
+                    <input type="number" name="precio" id="precio" step="0.01" min="100" required></li>
+                
+                <li><label for="detalles">Detalles:</label><br>
+                    <textarea name="detalles" id="detalles" rows="4" cols="60" maxlength="250" placeholder="Descripción del producto (máximo 250 caracteres)"></textarea><br>
+                    <small><span id="contadorCaracteres">0</span>/250 caracteres</small></li>
+                
+                <li><label for="unidades">Unidades:</label> 
+                    <input type="number" name="unidades" id="unidades" min="0" required></li>
+                
+                <li><label for="imagen">Imagen:</label> 
+                    <input type="text" name="imagen" id="imagen" placeholder="img/default.png"></li>
+            </ul>
+        </fieldset>
 
-                <div class="form-group">
-                    <label for="precio" class="font-weight-bold">Precio:</label> 
-                    <div class="input-group">
-                        <div class="input-group-prepend">
-                            <span class="input-group-text">$</span>
-                        </div>
-                        <input type="number" name="precio" id="precio" class="form-control" step="0.01" min="100" required>
-                    </div>
-                    <small class="form-text text-muted">Debe ser mayor a $99.99</small>
-                </div>
+        <p>
+            <input type="submit" value="Actualizar Producto" id="submitButton">
+            <input type="reset" value="Limpiar">
+            <a href="javascript:history.back()">Cancelar</a>
+        </p>
 
-                <div class="form-group">
-                    <label for="detalles" class="font-weight-bold">Detalles:</label>
-                    <textarea name="detalles" id="detalles" class="form-control" rows="4" maxlength="250" placeholder="Descripción del producto (máximo 250 caracteres)"></textarea>
-                    <small class="form-text text-muted"><span id="contadorCaracteres">0</span>/250 caracteres</small>
-                </div>
-
-                <div class="form-group">
-                    <label for="unidades" class="font-weight-bold">Unidades:</label> 
-                    <input type="number" name="unidades" id="unidades" class="form-control" min="0" required>
-                    <small class="form-text text-muted">No puede ser negativo</small>
-                </div>
-
-                <div class="form-group">
-                    <label for="imagen" class="font-weight-bold">Imagen:</label> 
-                    <input type="text" name="imagen" id="imagen" class="form-control" placeholder="img/default.png">
-                    <small class="form-text text-muted">URL de la imagen. Si está vacío, se usará la imagen por defecto</small>
-                </div>
-
-                <div class="btn-container">
-                    <input type="submit" value="Actualizar Producto" class="btn btn-primary btn-lg">
-                    <input type="reset" value="Restablecer" class="btn btn-secondary btn-lg">
-                    <a href="javascript:history.back()" class="btn btn-outline-secondary btn-lg">Cancelar</a>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <script>
-        // Contador de caracteres para detalles
-        document.getElementById('detalles').addEventListener('input', function() {
-            const contador = document.getElementById('contadorCaracteres');
-            contador.textContent = this.value.length;
-            
-            if (this.value.length > 250) {
-                contador.style.color = 'red';
-            } else {
-                contador.style.color = '#6c757d';
-            }
-        });
-
-        // Ocultar loading y mostrar formulario cuando se carguen los datos
-        function mostrarFormulario() {
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('formularioProducto').style.display = 'block';
-        }
-
-        // Modificar la función cargarDatosProducto para mostrar el formulario al final
-        const originalCargarDatos = cargarDatosProducto;
-        cargarDatosProducto = function() {
-            originalCargarDatos();
-            // Mostrar formulario después de un tiempo como fallback
-            setTimeout(mostrarFormulario, 2000);
-        };
-
-        // Mostrar formulario cuando se complete la carga de datos
-        window.addEventListener('DOMContentLoaded', function() {
-            // Esto se ejecutará cuando el DOM esté listo
-        });
-    </script>
+    </form>
 </body>
 </html>

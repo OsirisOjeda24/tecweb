@@ -1,170 +1,161 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
-"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="es">
-	<?php
-	if(isset($_GET['tope']))
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <title>Productos Vigentes</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f8fbff;
+        }
+        h2 {
+            color: #1e3c72;
+            border-bottom: 2px solid #2a5298;
+            padding-bottom: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border: 2px solid #1e3c72;
+        }
+        th {
+            background-color: #2a5298;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #1e3c72;
+        }
+        td {
+            padding: 10px;
+            border: 1px solid #87CEEB;
+            background-color: #f0f8ff;
+        }
+        tr:nth-child(even) td {
+            background-color: #e6f3ff;
+        }
+        .low-stock {
+            color: #ff6600;
+            font-weight: bold;
+        }
+        .actions a:hover {
+            background-color: #2a5298;
+            color: white;
+        }
+        .new-product {
+            color: #2a5298;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .new-product:hover {
+            text-decoration: underline;
+        }
+        .total {
+            color: #1e3c72;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+        .no-products {
+            color: #cc0000;
+            background-color: #ffe6e6;
+            padding: 15px;
+            border: 1px solid #cc0000;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <?php
+    if(isset($_GET['tope']))
     {
-		$tope = $_GET['tope'];
+        $tope = $_GET['tope'];
     }
     else
     {
         die('Parámetro "tope" no detectado...');
     }
 
-    // Validar que tope sea numérico
-	if (!is_numeric($tope)) {
-		die('El parámetro "tope" debe ser numérico');
-	}
+    if (!is_numeric($tope)) {
+        die('El parámetro "tope" debe ser numérico');
+    }
 
     $productos = [];
 
-	if (!empty($tope))
-	{
-		// SE CREA EL OBJETO DE CONEXION 
-		@$link = new mysqli('localhost', 'root', 'Oross2414', 'marketzone');	
+    if (!empty($tope))
+    {
+        @$link = new mysqli('localhost', 'root', 'Oross2414', 'marketzone');	
 
-		/** comprobar la conexión */
-		if ($link->connect_errno) 
-		{
-			die('Falló la conexión: '.$link->connect_error.'<br/>');
-			    /** NOTA: con @ se suprime el Warning para gestionar el error por medio de código */
-		}
+        if ($link->connect_errno) 
+        {
+            die('Falló la conexión: '.$link->connect_error.'<br/>');
+        }
 
-		// Consulta para obtener solo productos NO ELIMINADOS
-		//Se agrega la condición: eliminado = 0
-		$stmt = $link->prepare("SELECT * FROM productos WHERE unidades <= ? AND eliminado = 0");
-		$stmt->bind_param("i", $tope);
-		$stmt->execute();
-		$result = $stmt->get_result();
+        $stmt = $link->prepare("SELECT * FROM productos WHERE unidades <= ? AND eliminado = 0");
+        $stmt->bind_param("i", $tope);
+        $stmt->execute();
+        $result = $stmt->get_result();
 
-		// Obtener todos los productos
-		while ($row = $result->fetch_array(MYSQLI_ASSOC)) {
-			$productos[] = $row;
-		}
+        while ($row = $result->fetch_array(MYSQLI_ASSOC)) {
+            $productos[] = $row;
+        }
 
-		$result->free();
-		$stmt->close();
-		$link->close();
-	}
-	?>
-	<head>
-		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-		<title>Productos Vigentes</title>
-		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-		<style>
-			.header-vigentes {
-				background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-				color: white;
-				padding: 20px;
-				border-radius: 5px;
-				margin-bottom: 20px;
-			}
-			.badge-vigente {
-				background-color: #28a745;
-				color: white;
-				padding: 5px 10px;
-				border-radius: 15px;
-				font-size: 12px;
-			}
-			.table thead th {
-				background-color: #1976d2;
-				color: white;
-			}
-			.info-box {
-				background-color: #e3f2fd;
-				padding: 15px;
-				border-radius: 5px;
-				margin-bottom: 20px;
-				border-left: 4px solid #2196f3;
-			}
-			.btn-action {
-				margin: 2px;
-				min-width: 70px;
-			}
-			.actions-column {
-				min-width: 160px;
-			}
-		</style>
-	</head>
-	<body>
-		<div class="container">
-			<div class="header-vigentes">
-				<h3>PRODUCTOS VIGENTES</h3>
-				<p class="mb-0">Mostrando productos con <?= $tope ?> unidades o menos <span class="badge-vigente">NO ELIMINADOS</span></p>
-			</div>
+        $result->free();
+        $stmt->close();
+        $link->close();
+    }
+    ?>
 
-			<div class="info-box">
-				<strong>Información de la consulta:</strong><br>
-				- Filtro: Unidades ≤ <?= $tope ?><br>
-				- Estado: Eliminado = 0 (Productos activos)<br>
-				- Productos encontrados: <strong><?= count($productos) ?></strong><br>
-				- <em>Ahora con funcionalidad de edición</em>
-			</div>
-			
-			<?php if( count($productos) > 0 ) : ?>
+    <h2>PRODUCTOS VIGENTES</h2>
+    <p>Mostrando productos con <?= $tope ?> unidades o menos</p>
+    
+    <?php if( count($productos) > 0 ) : ?>
 
-				<table class="table table-striped table-bordered">
-					<thead class="thead-dark">
-						<tr>
-						<th scope="col">#</th>
-						<th scope="col">Nombre</th>
-						<th scope="col">Marca</th>
-						<th scope="col">Modelo</th>
-						<th scope="col">Precio</th>
-						<th scope="col">Unidades</th>
-						<th scope="col">Detalles</th>
-						<th scope="col">Imagen</th>
-						<th scope="col" class="actions-column">Acciones</th>
-						</tr>
-					</thead>
-					<tbody>
-						<?php foreach($productos as $row): ?>
-							<tr>
-								<th scope="row"><?= $row['id'] ?></th>
-								<td><?= $row['nombre'] ?></td>
-								<td><?= $row['marca'] ?></td>
-								<td><?= $row['modelo'] ?></td>
-								<td>$<?= number_format($row['precio'], 2) ?></td>
-								<td>
-									<?php if($row['unidades'] <= 5): ?>
-										<span class="badge badge-warning"><?= $row['unidades'] ?> (Bajo stock)</span>
-									<?php else: ?>
-										<span class="badge badge-success"><?= $row['unidades'] ?></span>
-									<?php endif; ?>
-								</td>
-								<td><?= utf8_encode($row['detalles']) ?></td>
-								<td>
-									<?php if(!empty($row['imagen']) && $row['imagen'] != 'img/default.png'): ?>
-										<img src="<?= $row['imagen'] ?>" width="80" height="80" style="object-fit: cover;">
-									<?php else: ?>
-										<span class="badge badge-secondary">Sin imagen</span>
-									<?php endif; ?>
-								</td>
-								<td>
-									<div class="d-flex flex-column">
-										<a href="formulario_editar_producto.php?id=<?= $row['id'] ?>" class="btn btn-warning btn-sm btn-action">Editar</a>
-										<a href="eliminar_producto.php?id=<?= $row['id'] ?>" class="btn btn-danger btn-sm btn-action" onclick="return confirm('¿Estás seguro de eliminar este producto?')">Eliminar</a>
-									</div>
-								</td>
-							</tr>
-						<?php endforeach; ?>
-					</tbody>
-				</table>
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Nombre</th>
+                    <th>Marca</th>
+                    <th>Modelo</th>
+                    <th>Precio</th>
+                    <th>Unidades</th>
+                    <th>Detalles</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach($productos as $row): ?>
+                    <tr>
+                        <td><?= $row['id'] ?></td>
+                        <td><?= htmlspecialchars($row['nombre']) ?></td>
+                        <td><?= htmlspecialchars($row['marca']) ?></td>
+                        <td><?= htmlspecialchars($row['modelo']) ?></td>
+                        <td>$<?= number_format($row['precio'], 2) ?></td>
+                        <td>
+                            <?php if($row['unidades'] <= 5): ?>
+                                <span class="low-stock"><?= $row['unidades'] ?> (Bajo stock)</span>
+                            <?php else: ?>
+                                <?= $row['unidades'] ?>
+                            <?php endif; ?>
+                        </td>
+                        <td><?= htmlspecialchars(utf8_encode($row['detalles'])) ?></td>
+                        <td class="actions">
+                            <a href="formulario_productos_v2.html?action=edit&id=<?= $row['id'] ?>">Editar</a>
+                            <a href="eliminar_producto.php?id=<?= $row['id'] ?>" onclick="return confirm('¿Estás seguro de eliminar este producto?')">Eliminar</a>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
 
-				<div class="alert alert-success">
-					<strong>Mostrando <?= count($productos) ?> productos vigentes</strong> - Los productos marcados como eliminados (eliminado = 1) no se muestran en esta lista.
-					<br><strong>Nueva funcionalidad:</strong> Ahora puedes editar o eliminar cualquier producto desde esta interfaz.
-				</div>
+        <p class="total">Total: <?= count($productos) ?> productos vigentes</p>
 
-			<?php else : ?>
+    <?php else : ?>
+        <p class="no-products">No se encontraron productos vigentes.</p>
+    <?php endif; ?>
 
-				<div class="alert alert-warning text-center">
-					<h4>No se encontraron productos vigentes</h4>
-					<p>No hay productos con <?= $tope ?> unidades o menos que no estén eliminados.</p>
-					<p><small>Nota: Los productos marcados como eliminados (eliminado = 1) no se muestran.</small></p>
-				</div>
-
-			<?php endif; ?>
-		</div>
-	</body>
+    <p><a href="formulario_productos_v2.html" class="new-product">Crear nuevo producto</a></p>
+</body>
 </html>

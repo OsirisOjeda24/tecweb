@@ -4,7 +4,7 @@ $link = mysqli_connect("localhost", "root", "Oross2414", "marketzone");
 
 // Chequea coneccion
 if($link === false){
-    die("ERROR: No pudo conectarse con la DB. " . mysqli_connect_error());
+    die("No se pudo conectar con la Base de Datos. " . mysqli_connect_error());
 }
 
 // Recibir y validar datos del formulario
@@ -21,19 +21,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     // Validaciones básicas
     if ($id <= 0) {
-        die("ERROR: ID de producto inválido");
+        showError("ID de producto inválido");
     }
 
     if (empty($nombre) || empty($marca) || empty($modelo)) {
-        die("ERROR: Campos obligatorios vacíos");
+        showError("Campos obligatorios vacíos");
     }
 
     if ($precio <= 99.99) {
-        die("ERROR: El precio debe ser mayor a 99.99");
+        showError("El precio debe ser mayor a 99.99");
     }
 
     if ($unidades < 0) {
-        die("ERROR: Las unidades no pueden ser negativas");
+        showError("Las unidades ingresadas no pueden ser negativas");
     }
 
     // Si la imagen está vacía, usar default
@@ -53,47 +53,72 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             WHERE id = $id";
 
     if(mysqli_query($link, $sql)){
-        echo "<!DOCTYPE html>
-        <html>
-        <head>
-            <title>Producto Actualizado</title>
-            <link rel='stylesheet' href='https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css'>
-            <style>
-                .success-container {
-                    max-width: 600px;
-                    margin: 50px auto;
-                    padding: 30px;
-                    text-align: center;
-                }
-            </style>
-        </head>
-        <body>
-            <div class='container'>
-                <div class='success-container alert alert-success'>
-                    <h2> Producto Actualizado Correctamente</h2>
-                    <p>El producto <strong>$nombre</strong> ha sido actualizado en la base de datos.</p>
-                    <div class='mt-4'>
-                        <a href='get_productos_xhtml_v2.php?tope=100' class='btn btn-primary'>Ver Lista de Productos</a>
-                        <a href='get_productos_vigentes_v2.php?tope=100' class='btn btn-secondary'>Ver Productos Vigentes</a>
-                    </div>
-                </div>
-            </div>
-        </body>
-        </html>";
+        showSuccess("Producto actualizado correctamente: $nombre");
     } else {
-        echo "<div class='alert alert-danger'>
-                <h3> ERROR: No se ejecuto la actualización</h3>
-                <p>" . mysqli_error($link) . "</p>
-                <p>SQL: $sql</p>
-              </div>";
+        showError("No se ejecutó la actualización correctamente. " . mysqli_error($link));
     }
 } else {
-    echo "<div class='alert alert-warning'>
-            <h3>Método no permitido</h3>
-            <p>Esta página solo acepta solicitudes POST.</p>
-          </div>";
+    showError("Método no permitido");
 }
 
 // Cierra la conexion
-mysqli_close($link);
+mysqli_close($link);     
+
+function showSuccess($message) {
+    echo "<!DOCTYPE html>
+    <html>
+    <head>
+        <title>Producto Actualizado</title>
+        <style>
+            body { font-family: Arial; margin: 50px; }
+            .success { 
+                background-color: #d4edda; 
+                color: #155724; 
+                padding: 20px; 
+                border: 1px solid #c3e6cb;
+                margin: 20px 0;
+            }
+            .links { margin-top: 20px; }
+            a { margin-right: 10px; }
+        </style>
+    </head>
+    <body>
+        <div class='success'>
+            <h2>Operación Exitosa</h2>
+            <p>$message</p>
+        </div>
+        <div class='links'>
+            <a href='get_productos_xhtml_v2.php?tope=100'>Ver Lista de Productos</a>
+            <a href='get_productos_vigentes_v2.php?tope=100'>Ver Productos Vigentes</a>
+            <a href='formulario_productos_v2.html'>Nuevo Producto</a>
+        </div>
+    </body>
+    </html>";
+}
+
+function showError($message) {
+    echo "<!DOCTYPE html>
+    <html>
+    <head>
+        <title>Error</title>
+        <style>
+            body { font-family: Arial; margin: 50px; }
+            .error { 
+                background-color: #f8d7da; 
+                color: #721c24; 
+                padding: 20px; 
+                border: 1px solid #f5c6cb;
+                margin: 20px 0;
+            }
+        </style>
+    </head>
+    <body>
+        <div class='error'>
+            <h2>Error</h2>
+            <p>$message</p>
+        </div>
+        <a href='javascript:history.back()'>Volver al formulario</a>
+    </body>
+    </html>";
+}
 ?>
