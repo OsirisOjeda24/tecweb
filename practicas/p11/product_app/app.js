@@ -8,6 +8,9 @@ var baseJSON = {
     "Imagen": "img/default.png"
   };
 
+// LISTA DE MARCAS VÁLIDAS
+var marcasValidas = ["Samsung", "Apple", "Sony", "LG", "HP", "Dell", "Asus", "Lenovo", "Otra"];
+
 // FUNCIÓN CALLBACK DE BOTÓN "Buscar"
 function buscarID(e) {
     /**
@@ -118,30 +121,119 @@ function buscarProducto(e) {
     client.send("search="+encodeURIComponent(searchTerm));
 }
 
+// FUNCIÓN PARA VALIDAR LOS DATOS DEL PRODUCTO
+function validarProducto(producto) {
+    // a. Validar nombre (requerido y máximo 100 caracteres)
+    if (!producto.nombre || producto.nombre.trim() === '') {
+        return { valido: false, mensaje: "El nombre del producto es requerido" };
+    }
+    if (producto.nombre.length > 100) {
+        return { valido: false, mensaje: "El nombre debe tener máximo 100 caracteres" };
+    }
+
+    // b. Validar marca (requerida y debe estar en la lista de opciones)
+    if (!producto.Marca || producto.Marca.trim() === '') {
+        return { valido: false, mensaje: "La marca es requerida" };
+    }
+    if (!marcasValidas.includes(producto.Marca)) {
+        return { valido: false, mensaje: "La marca seleccionada no es válida" };
+    }
+
+    // c. Validar modelo (requerido, alfanumérico y máximo 25 caracteres)
+    if (!producto.Modelo || producto.Modelo.trim() === '') {
+        return { valido: false, mensaje: "El modelo es requerido" };
+    }
+    if (producto.Modelo.length > 25) {
+        return { valido: false, mensaje: "El modelo debe tener máximo 25 caracteres" };
+    }
+    // Validar que sea alfanumérico (letras, números)
+    var modeloRegex = /^[a-zA-Z0-9\-_ ]+$/;
+    if (!modeloRegex.test(producto.Modelo)) {
+        return { valido: false, mensaje: "El modelo solo puede contener letras y números" };
+    }
+
+    // d. Validar precio (requerido y mayor a 99.99)
+    if (!producto.Precio && producto.Precio !== 0) {
+        return { valido: false, mensaje: "El precio es requerido" };
+    }
+    if (parseFloat(producto.Precio) <= 99.99) {
+        return { valido: false, mensaje: "El precio debe ser mayor a 99.99" };
+    }
+
+    // e. Validar detalles (opcional, máximo 250 caracteres)
+    if (producto.Detalles && producto.Detalles.length > 250) {
+        return { valido: false, mensaje: "Los detalles deben tener máximo 250 caracteres" };
+    }
+
+    // f. Validar unidades (requerido y mayor o igual a 0)
+    if (!producto.Unidades && producto.Unidades !== 0) {
+        return { valido: false, mensaje: "Las unidades son requeridas" };
+    }
+    if (parseInt(producto.Unidades) < 0) {
+        return { valido: false, mensaje: "Las unidades deben ser mayor o igual a 0" };
+    }
+
+    // g. Validar imagen (opcional, si no hay usar imagen por defecto)
+    if (!producto.Imagen || producto.Imagen.trim() === '') {
+        producto.Imagen = "img/default.png";
+    }
+
+    return { valido: true, mensaje: "Producto válido" };
+}
+
 // FUNCIÓN CALLBACK DE BOTÓN "Agregar Producto"
 function agregarProducto(e) {
     e.preventDefault();
 
     // SE OBTIENE DESDE EL FORMULARIO EL JSON A ENVIAR
     var productoJsonString = document.getElementById('description').value;
-    // SE CONVIERTE EL JSON DE STRING A OBJETO
-    var finalJSON = JSON.parse(productoJsonString);
-    // SE AGREGA AL JSON EL NOMBRE DEL PRODUCTO
-    finalJSON['nombre'] = document.getElementById('name').value;
-    // SE OBTIENE EL STRING DEL JSON FINAL
-    productoJsonString = JSON.stringify(finalJSON,null,2);
+    
+    try {
+        // SE CONVIERTE EL JSON DE STRING A OBJETO
+        var finalJSON = JSON.parse(productoJsonString);
+        // SE AGREGA AL JSON EL NOMBRE DEL PRODUCTO
+        finalJSON['nombre'] = document.getElementById('name').value;
 
-    // SE CREA EL OBJETO DE CONEXIÓN ASÍNCRONA AL SERVIDOR
-    var client = getXMLHttpRequest();
-    client.open('POST', './backend/create.php', true);
-    client.setRequestHeader('Content-Type', "application/json;charset=UTF-8");
-    client.onreadystatechange = function () {
-        // SE VERIFICA SI LA RESPUESTA ESTÁ LISTA Y FUE SATISFACTORIA
-        if (client.readyState == 4 && client.status == 200) {
-            console.log(client.responseText);
+        // VALIDAR LOS DATOS DEL PRODUCTO (ESTA PARTE FALTABA)
+        var validacion = validarProducto(finalJSON);
+        if (!validacion.valido) {
+            alert("Error de validación: " + validacion.mensaje);
+            return; // Detener el proceso si la validación falla
         }
-    };
-    client.send(productoJsonString);
+
+        // SE OBTIENE EL STRING DEL JSON FINAL
+        productoJsonString = JSON.stringify(finalJSON,null,2);
+
+        // SE CREA EL OBJETO DE CONEXIÓN ASÍNCRONA AL SERVIDOR
+        var client = getXMLHttpRequest();
+        client.open('POST', './backend/create.php', true);
+        client.setRequestHeader('Content-Type', "application/json;charset=UTF-8");
+        client.onreadystatechange = function () {
+            // SE VERIFICA SI LA RESPUESTA ESTÁ LISTA Y FUE SATISFACTORIA
+            if (client.readyState == 4 && client.status == 200) {
+                console.log(client.responseText);
+                // PROCESAR LA RESPUESTA DEL SERVIDOR
+                try {
+                    var respuesta = JSON.parse(client.responseText);
+                    if (respuesta.success) {
+                        alert("Registro Exitoso" + respuesta.message);
+                        // Limpiar el formulario después de éxito
+                        document.getElementById('name').value = '';
+                        init(); // Restablecer el JSON base
+                    } else {
+                        alert("Registro no Valido, " + respuesta.message);
+                    }
+                } catch (error) {
+                    console.error("Error parsing response:", error);
+                    alert("Error procesando la respuesta del servidor");
+                }
+            }
+        };
+        client.send(productoJsonString);
+    } catch (error) {
+        alert("Error: El JSON ingresado no es válido");
+        console.error("Error parsing JSON:", error);
+    }
 }
 
 // SE CREA EL OBJETO DE CONEXIÓN COMPATIBLE CON EL NAVEGADOR
