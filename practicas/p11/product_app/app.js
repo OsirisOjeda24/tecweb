@@ -1,11 +1,11 @@
 // JSON BASE A MOSTRAR EN FORMULARIO
 var baseJSON = {
-    "precio": 0.0,
-    "unidades": 1,
-    "modelo": "XX-000",
-    "marca": "NA",
-    "detalles": "NA",
-    "imagen": "img/default.png"
+    "Precio": 0.0,
+    "Unidades": 1,
+    "Modelo": "XX-000",
+    "Marca": "NA",
+    "Detalles": "NA",
+    "Imagen": "img/default.png"
   };
 
 // FUNCIÓN CALLBACK DE BOTÓN "Buscar"
@@ -58,6 +58,64 @@ function buscarID(e) {
         }
     };
     client.send("id="+id);
+}
+
+// FUNCIÓN PARA BÚSQUEDA
+function buscarProducto(e) {
+    e.preventDefault();
+
+    // SE OBTIENE EL TÉRMINO A BUSCAR
+    var searchTerm = document.getElementById('search').value;
+
+    // SE CREA EL OBJETO DE CONEXIÓN ASÍNCRONA AL SERVIDOR
+    var client = getXMLHttpRequest();
+    client.open('POST', './backend/read.php', true);
+    client.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    client.onreadystatechange = function () {
+        // SE VERIFICA SI LA RESPUESTA ESTÁ LISTA Y FUE SATISFACTORIA
+        if (client.readyState == 4 && client.status == 200) {
+            console.log('[CLIENTE BÚSQUEDA VERSÁTIL]\n'+client.responseText);
+            
+            // SE OBTIENE EL ARRAY DE DATOS A PARTIR DE UN STRING JSON
+            let productos = JSON.parse(client.responseText);
+            
+            // SE VERIFICA SI EL ARRAY JSON TIENE DATOS
+            if(productos.length > 0) {
+                let template = '';
+                
+                // SE ITERA SOBRE CADA PRODUCTO ENCONTRADO
+                productos.forEach(function(producto) {
+                    // SE CREA UNA LISTA HTML CON LA DESCRIPCIÓN DEL PRODUCTO
+                    let descripcion = '';
+                        descripcion += '<li>precio: '+producto.precio+'</li>';
+                        descripcion += '<li>unidades: '+producto.unidades+'</li>';
+                        descripcion += '<li>modelo: '+producto.modelo+'</li>';
+                        descripcion += '<li>marca: '+producto.marca+'</li>';
+                        descripcion += '<li>detalles: '+producto.detalles+'</li>';
+                    
+                    // SE CREA UNA FILA POR CADA PRODUCTO
+                    template += `
+                        <tr>
+                            <td>${producto.id}</td>
+                            <td>${producto.nombre}</td>
+                            <td><ul>${descripcion}</ul></td>
+                        </tr>
+                    `;
+                });
+
+                // SE INSERTA LA PLANTILLA EN EL ELEMENTO CON ID "productos"
+                document.getElementById("productos").innerHTML = template;
+            } else {
+                // SI NO HAY PRODUCTOS, MOSTRAR MENSAJE
+                document.getElementById("productos").innerHTML = `
+                    <tr>
+                        <td colspan="3" style="text-align: center;">No se encontraron productos</td>
+                    </tr>
+                `;
+            }
+        }
+    };
+    client.send("search="+encodeURIComponent(searchTerm));
 }
 
 // FUNCIÓN CALLBACK DE BOTÓN "Agregar Producto"
