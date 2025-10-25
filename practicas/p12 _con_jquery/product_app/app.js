@@ -135,96 +135,132 @@ function buscarProductos(searchTerm) {
     });
 }
 
-// FUNCIÓN PARA AGREGAR PRODUCTO
+// FUNCIÓN PARA AGREGAR PRODUCTO 
 function agregarProducto(e) {
     e.preventDefault();
 
-    // SE OBTIENE DESDE EL FORMULARIO EL JSON A ENVIAR
-    const productoJsonString = $("#description").val();
-    // SE CONVIERTE EL JSON DE STRING A OBJETO
-    const finalJSON = JSON.parse(productoJsonString);
-    // SE AGREGA AL JSON EL NOMBRE DEL PRODUCTO
-    finalJSON['nombre'] = $("#name").val();
-    // SE OBTIENE EL STRING DEL JSON FINAL
-    const jsonEnviar = JSON.stringify(finalJSON, null, 2);
+    // OBTENER VALORES
+    const nombre = $("#name").val().trim();
+    const productoJsonString = $("#description").val().trim();
 
     // VALIDACIONES BÁSICAS
-    if (!finalJSON['nombre'].trim()) {
-        mostrarResultado("error", "El nombre del producto es requerido");
+    if (!nombre) {
+        mostrarResultado("error", " El nombre del producto es requerido");
+        $("#name").addClass('is-invalid');
         return;
     }
 
-    // SE ENVÍA EL PRODUCTO A AGREGAR
-    $.ajax({
-        url: './backend/product-add.php',
-        type: 'POST',
-        data: jsonEnviar,
-        contentType: 'application/json; charset=utf-8',
-        dataType: 'json',
-        success: function(respuesta) {
-            console.log(respuesta);
-            
-            // SE CREA UNA PLANTILLA PARA CREAR INFORMACIÓN DE LA BARRA DE ESTADO
-            let template_bar = '';
-            template_bar += `
-                <li style="list-style: none;">status: ${respuesta.status}</li>
-                <li style="list-style: none;">message: ${respuesta.message}</li>
-            `;
+    if (!productoJsonString) {
+        mostrarResultado("error", "El JSON del producto es requerido");
+        $("#description").addClass('is-invalid');
+        return;
+    }
 
-            // SE HACE VISIBLE LA BARRA DE ESTADO
-            $("#product-result").removeClass("d-none");
-            // SE INSERTA LA PLANTILLA PARA LA BARRA DE ESTADO
-            $("#container").html(template_bar);
+    // REMOVER CLASES DE ERROR
+    $("#name").removeClass('is-invalid');
+    $("#description").removeClass('is-invalid');
 
-            // SE LISTAN TODOS LOS PRODUCTOS
-            listarProductos();
-            
-            // LIMPIAR FORMULARIO SI FUE EXITOSO
-            if(respuesta.status === 'success') {
-                resetForm();
+    try {
+        // PARSEAR Y VALIDAR JSON
+        const finalJSON = JSON.parse(productoJsonString);
+        
+        // AGREGAR NOMBRE AL JSON (JavaScript añade automáticamente las comillas dobles)
+        finalJSON.nombre = nombre;
+        
+        // CONVERTIR A STRING PARA ENVÍO
+        const jsonEnviar = JSON.stringify(finalJSON, null, 2);
+        
+        console.log("JSON a enviar:", jsonEnviar); // Para verificar
+
+        // ENVIAR AL SERVIDOR
+        $.ajax({
+            url: './backend/product-add.php',
+            type: 'POST',
+            data: jsonEnviar,
+            contentType: 'application/json; charset=utf-8',
+            dataType: 'json',
+            success: function(respuesta) {
+                console.log("Respuesta del servidor:", respuesta);
+                
+                // MOSTRAR RESULTADO
+                let template_bar = `
+                    <li style="list-style: none;">status: ${respuesta.status}</li>
+                    <li style="list-style: none;">message: ${respuesta.message}</li>
+                `;
+
+                $("#product-result").removeClass("d-none");
+                $("#container").html(template_bar);
+
+                // ACTUALIZAR LISTA DE PRODUCTOS
+                listarProductos();
+                
+                // LIMPIAR FORMULARIO SI FUE EXITOSO
+                if(respuesta.status === 'success') {
+                    resetForm();
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error("Error AJAX:", error);
+                mostrarResultado("error", "Error de conexión con el servidor");
             }
-        },
-        error: function(xhr, status, error) {
-            console.error("Error al agregar producto:", error);
-            mostrarResultado("error", "Error al agregar producto");
-        }
-    });
+        });
+
+    } catch (error) {
+        console.error("Error en JSON:", error);
+        mostrarResultado("error", "JSON inválido: " + error.message);
+        $("#description").addClass('is-invalid');
+    }
 }
 
 // FUNCIÓN PARA CARGAR PRODUCTO EN FORMULARIO PARA EDITAR
 function cargarProductoParaEditar(productId) {
-    // USAMOS product-search.php PARA OBTENER UN PRODUCTO ESPECÍFICO
+    
+    // LIMPIAR FORMULARIO PRIMERO
+    resetForm();
+    
+    // BUSCAR PRODUCTO POR ID EXACTO
     $.ajax({
-        url: './backend/product-search.php?search=' + productId,
+        url: './backend/product-list.php', // Obtener todos los productos
         type: 'GET',
         dataType: 'json',
         success: function(productos) {
             if (productos && productos.length > 0) {
-                const producto = productos[0]; // Tomamos el primer resultado
+                // BUSCAR PRODUCTO CON ID EXACTO
+                const producto = productos.find(p => p.id == productId);
                 
-                $("#productId").val(producto.id);
-                $("#name").val(producto.nombre);
-                
-                // Crear JSON con los datos del producto
-                const productData = {
-                    precio: producto.precio,
-                    unidades: producto.unidades,
-                    modelo: producto.modelo,
-                    marca: producto.marca,
-                    detalles: producto.detalles,
-                    imagen: producto.imagen
-                };
-                
-                $("#description").val(JSON.stringify(productData, null, 2));
-                $("#submit-btn").text("Actualizar Producto");
-                $("#cancel-edit").removeClass("d-none");
-                
-                mostrarResultado("info", "Modo edición: Los datos se han cargado. Modifica y haz clic en 'Actualizar Producto' para guardar como nuevo producto.");
+                if (producto) {
+                    console.log("Producto encontrado:", producto);
+                    
+                    // CARGAR DATOS EN FORMULARIO
+                    $("#productId").val(producto.id);
+                    $("#name").val(producto.nombre);
+                    
+                    const productData = {
+                        precio: parseFloat(producto.precio),
+                        unidades: parseInt(producto.unidades),
+                        modelo: producto.modelo,
+                        marca: producto.marca,
+                        detalles: producto.detalles,
+                        imagen: producto.imagen
+                    };
+                    
+                    $("#description").val(JSON.stringify(productData, null, 2));
+                    $("#submit-btn").text("Actualizar Producto");
+                    $("#cancel-edit").removeClass("d-none");
+                    
+                    mostrarResultado("success", `Editando: ${producto.nombre} (ID: ${producto.id})`);
+                    
+                } else {
+                    console.error("Producto no encontrado con ID:", productId);
+                    mostrarResultado("error", `No se encontró el producto con ID: ${productId}`);
+                }
+            } else {
+                mostrarResultado("error", "No hay productos disponibles");
             }
         },
         error: function(xhr, status, error) {
-            console.error("Error al cargar producto:", error);
-            mostrarResultado("error", "Error al cargar producto");
+            console.error("Error al cargar productos:", error);
+            mostrarResultado("error", "Error al cargar datos del producto");
         }
     });
 }
@@ -280,6 +316,10 @@ function resetForm() {
     $("#description").val(JSON.stringify(baseJSON, null, 2));
     $("#submit-btn").text("Agregar Producto");
     $("#cancel-edit").addClass("d-none");
+    
+    // REMOVER CLASES DE VALIDACIÓN
+    $("#name").removeClass('is-invalid is-valid');
+    $("#description").removeClass('is-invalid is-valid');
 }
 
 // EVENTOS CON JQUERY
@@ -303,6 +343,31 @@ $(document).ready(function() {
 
     // CANCELAR EDICIÓN
     $("#cancel-edit").on('click', resetForm);
+
+    // VALIDACIÓN EN TIEMPO REAL DEL JSON
+    $("#description").on('input', function() {
+        const jsonText = $(this).val().trim();
+        if (jsonText) {
+            try {
+                JSON.parse(jsonText);
+                $(this).removeClass('is-invalid').addClass('is-valid');
+            } catch (e) {
+                $(this).removeClass('is-valid').addClass('is-invalid');
+            }
+        } else {
+            $(this).removeClass('is-valid is-invalid');
+        }
+    });
+
+    // VALIDACIÓN EN TIEMPO REAL DEL NOMBRE
+    $("#name").on('input', function() {
+        const nombre = $(this).val().trim();
+        if (nombre) {
+            $(this).removeClass('is-invalid').addClass('is-valid');
+        } else {
+            $(this).removeClass('is-valid').addClass('is-invalid');
+        }
+    });
 
     // EVENTOS DELEGADOS PARA BOTONES DINÁMICOS
     $(document).on('click', '.product-edit', function() {
