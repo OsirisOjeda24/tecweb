@@ -20,36 +20,24 @@ function init() {
     listarProductos();
 }
 
-// FUNCIÓN CALLBACK AL CARGAR LA PÁGINA O AL AGREGAR UN PRODUCTO
+// FUNCIÓN PARA LISTAR PRODUCTOS
 function listarProductos() {
-    // SE CREA EL OBJETO DE CONEXIÓN ASÍNCRONA AL SERVIDOR
-    var client = getXMLHttpRequest();
-    client.open('GET', './backend/product-list.php', true);
-    client.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-    client.onreadystatechange = function () {
-        // SE VERIFICA SI LA RESPUESTA ESTÁ LISTA Y FUE SATISFACTORIA
-        if (client.readyState == 4 && client.status == 200) {
-            //console.log('[CLIENTE]\n'+client.responseText);
-            
-            // SE OBTIENE EL OBJETO DE DATOS A PARTIR DE UN STRING JSON
-            let productos = JSON.parse(client.responseText);    // similar a eval('('+client.responseText+')');
-            
-            // SE VERIFICA SI EL OBJETO JSON TIENE DATOS
-            if(Object.keys(productos).length > 0) {
-                // SE CREA UNA PLANTILLA PARA CREAR LAS FILAS A INSERTAR EN EL DOCUMENTO HTML
+    $.ajax({
+        url: './backend/product-list.php',
+        type: 'GET',
+        dataType: 'json',
+        success: function(productos) {
+            if (productos && productos.length > 0) {
                 let template = '';
 
                 productos.forEach(producto => {
-                    // SE COMPRUEBA QUE SE OBTIENE UN OBJETO POR ITERACIÓN
-                    //console.log(producto);
-
                     // SE CREA UNA LISTA HTML CON LA DESCRIPCIÓN DEL PRODUCTO
                     let descripcion = '';
-                    descripcion += '<li>precio: '+producto.precio+'</li>';
-                    descripcion += '<li>unidades: '+producto.unidades+'</li>';
-                    descripcion += '<li>modelo: '+producto.modelo+'</li>';
-                    descripcion += '<li>marca: '+producto.marca+'</li>';
-                    descripcion += '<li>detalles: '+producto.detalles+'</li>';
+                    descripcion += '<li>precio: ' + producto.precio + '</li>';
+                    descripcion += '<li>unidades: ' + producto.unidades + '</li>';
+                    descripcion += '<li>modelo: ' + producto.modelo + '</li>';
+                    descripcion += '<li>marca: ' + producto.marca + '</li>';
+                    descripcion += '<li>detalles: ' + producto.detalles + '</li>';
                 
                     template += `
                         <tr productId="${producto.id}">
@@ -57,62 +45,58 @@ function listarProductos() {
                             <td>${producto.nombre}</td>
                             <td><ul>${descripcion}</ul></td>
                             <td>
-                                <button class="product-delete btn btn-danger" onclick="eliminarProducto()">
+                                <button class="btn btn-warning btn-sm product-edit" data-id="${producto.id}">
+                                    Editar
+                                </button>
+                                <button class="btn btn-danger btn-sm product-delete" data-id="${producto.id}">
                                     Eliminar
                                 </button>
                             </td>
                         </tr>
                     `;
                 });
+                
                 // SE INSERTA LA PLANTILLA EN EL ELEMENTO CON ID "productos"
-                document.getElementById("products").innerHTML = template;
+                $("#products").html(template);
+            } else {
+                $("#products").html('<tr><td colspan="4" class="text-center">No hay productos</td></tr>');
             }
+        },
+        error: function(xhr, status, error) {
+            console.error("Error al listar productos:", error);
+            mostrarResultado("error", "Error al cargar productos");
         }
-    };
-    client.send();
+    });
 }
 
-// FUNCIÓN CALLBACK DE BOTÓN "Buscar"
-function buscarProducto(e) {
-    /**
-     * Revisar la siguiente información para entender porqué usar event.preventDefault();
-     * http://qbit.com.mx/blog/2013/01/07/la-diferencia-entre-return-false-preventdefault-y-stoppropagation-en-jquery/#:~:text=PreventDefault()%20se%20utiliza%20para,escuche%20a%20trav%C3%A9s%20del%20DOM
-     * https://www.geeksforgeeks.org/when-to-use-preventdefault-vs-return-false-in-javascript/
-     */
-    e.preventDefault();
+// FUNCIÓN PARA BÚSQUEDA EN TIEMPO REAL
+function buscarProductos(searchTerm) {
+    if (searchTerm.length === 0) {
+        listarProductos();
+        $("#product-result").addClass("d-none");
+        return;
+    }
 
-    // SE OBTIENE EL ID A BUSCAR
-    var search = document.getElementById('search').value;
-
-    // SE CREA EL OBJETO DE CONEXIÓN ASÍNCRONA AL SERVIDOR
-    var client = getXMLHttpRequest();
-    client.open('GET', './backend/product-search.php?search='+search, true);
-    client.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-    client.onreadystatechange = function () {
-        // SE VERIFICA SI LA RESPUESTA ESTÁ LISTA Y FUE SATISFACTORIA
-        if (client.readyState == 4 && client.status == 200) {
-            //console.log('[CLIENTE]\n'+client.responseText);
-            
-            // SE OBTIENE EL OBJETO DE DATOS A PARTIR DE UN STRING JSON
-            let productos = JSON.parse(client.responseText);    // similar a eval('('+client.responseText+')');
-            
+    $.ajax({
+        url: './backend/product-search.php',
+        type: 'GET',
+        data: { search: searchTerm },
+        dataType: 'json',
+        success: function(productos) {
             // SE VERIFICA SI EL OBJETO JSON TIENE DATOS
-            if(Object.keys(productos).length > 0) {
+            if(productos && productos.length > 0) {
                 // SE CREA UNA PLANTILLA PARA CREAR LAS FILAS A INSERTAR EN EL DOCUMENTO HTML
                 let template = '';
                 let template_bar = '';
 
                 productos.forEach(producto => {
-                    // SE COMPRUEBA QUE SE OBTIENE UN OBJETO POR ITERACIÓN
-                    //console.log(producto);
-
                     // SE CREA UNA LISTA HTML CON LA DESCRIPCIÓN DEL PRODUCTO
                     let descripcion = '';
-                    descripcion += '<li>precio: '+producto.precio+'</li>';
-                    descripcion += '<li>unidades: '+producto.unidades+'</li>';
-                    descripcion += '<li>modelo: '+producto.modelo+'</li>';
-                    descripcion += '<li>marca: '+producto.marca+'</li>';
-                    descripcion += '<li>detalles: '+producto.detalles+'</li>';
+                    descripcion += '<li>precio: ' + producto.precio + '</li>';
+                    descripcion += '<li>unidades: ' + producto.unidades + '</li>';
+                    descripcion += '<li>modelo: ' + producto.modelo + '</li>';
+                    descripcion += '<li>marca: ' + producto.marca + '</li>';
+                    descripcion += '<li>detalles: ' + producto.detalles + '</li>';
                 
                     template += `
                         <tr productId="${producto.id}">
@@ -120,136 +104,214 @@ function buscarProducto(e) {
                             <td>${producto.nombre}</td>
                             <td><ul>${descripcion}</ul></td>
                             <td>
-                                <button class="product-delete btn btn-danger" onclick="eliminarProducto()">
+                                <button class="btn btn-warning btn-sm product-edit" data-id="${producto.id}">
+                                    Editar
+                                </button>
+                                <button class="btn btn-danger btn-sm product-delete" data-id="${producto.id}">
                                     Eliminar
                                 </button>
                             </td>
                         </tr>
                     `;
 
-                    template_bar += `
-                        <li>${producto.nombre}</il>
-                    `;
+                    template_bar += `<li>${producto.nombre}</li>`;
                 });
+                
                 // SE HACE VISIBLE LA BARRA DE ESTADO
-                document.getElementById("product-result").className = "card my-4 d-block";
+                $("#product-result").removeClass("d-none");
                 // SE INSERTA LA PLANTILLA PARA LA BARRA DE ESTADO
-                document.getElementById("container").innerHTML = template_bar;  
+                $("#container").html(template_bar);
                 // SE INSERTA LA PLANTILLA EN EL ELEMENTO CON ID "productos"
-                document.getElementById("products").innerHTML = template;
+                $("#products").html(template);
+            } else {
+                $("#products").html('<tr><td colspan="4" class="text-center">No se encontraron productos</td></tr>');
+                $("#product-result").addClass("d-none");
             }
+        },
+        error: function(xhr, status, error) {
+            console.error("Error al buscar productos:", error);
+            mostrarResultado("error", "Error en la búsqueda");
         }
-    };
-    client.send();
+    });
 }
 
-// FUNCIÓN CALLBACK DE BOTÓN "Agregar Producto"
+// FUNCIÓN PARA AGREGAR PRODUCTO
 function agregarProducto(e) {
     e.preventDefault();
 
     // SE OBTIENE DESDE EL FORMULARIO EL JSON A ENVIAR
-    var productoJsonString = document.getElementById('description').value;
+    const productoJsonString = $("#description").val();
     // SE CONVIERTE EL JSON DE STRING A OBJETO
-    var finalJSON = JSON.parse(productoJsonString);
+    const finalJSON = JSON.parse(productoJsonString);
     // SE AGREGA AL JSON EL NOMBRE DEL PRODUCTO
-    finalJSON['nombre'] = document.getElementById('name').value;
+    finalJSON['nombre'] = $("#name").val();
     // SE OBTIENE EL STRING DEL JSON FINAL
-    productoJsonString = JSON.stringify(finalJSON,null,2);
+    const jsonEnviar = JSON.stringify(finalJSON, null, 2);
 
-/**
- * AQUÍ DEBES AGREGAR LAS VALIDACIONES DE LOS DATOS EN EL JSON
- * ...
- * 
- * --> EN CASO DE NO HABER ERRORES, SE ENVIAR EL PRODUCTO A AGREGAR
- */
+    // VALIDACIONES BÁSICAS
+    if (!finalJSON['nombre'].trim()) {
+        mostrarResultado("error", "El nombre del producto es requerido");
+        return;
+    }
 
-    // SE CREA EL OBJETO DE CONEXIÓN ASÍNCRONA AL SERVIDOR
-    var client = getXMLHttpRequest();
-    client.open('POST', './backend/product-add.php', true);
-    client.setRequestHeader('Content-Type', "application/json;charset=UTF-8");
-    client.onreadystatechange = function () {
-        // SE VERIFICA SI LA RESPUESTA ESTÁ LISTA Y FUE SATISFACTORIA
-        if (client.readyState == 4 && client.status == 200) {
-            console.log(client.responseText);
-            // SE OBTIENE EL OBJETO DE DATOS A PARTIR DE UN STRING JSON
-            let respuesta = JSON.parse(client.responseText);
+    // SE ENVÍA EL PRODUCTO A AGREGAR
+    $.ajax({
+        url: './backend/product-add.php',
+        type: 'POST',
+        data: jsonEnviar,
+        contentType: 'application/json; charset=utf-8',
+        dataType: 'json',
+        success: function(respuesta) {
+            console.log(respuesta);
+            
             // SE CREA UNA PLANTILLA PARA CREAR INFORMACIÓN DE LA BARRA DE ESTADO
             let template_bar = '';
             template_bar += `
-                        <li style="list-style: none;">status: ${respuesta.status}</li>
-                        <li style="list-style: none;">message: ${respuesta.message}</li>
-                    `;
+                <li style="list-style: none;">status: ${respuesta.status}</li>
+                <li style="list-style: none;">message: ${respuesta.message}</li>
+            `;
 
             // SE HACE VISIBLE LA BARRA DE ESTADO
-            document.getElementById("product-result").className = "card my-4 d-block";
+            $("#product-result").removeClass("d-none");
             // SE INSERTA LA PLANTILLA PARA LA BARRA DE ESTADO
-            document.getElementById("container").innerHTML = template_bar;
+            $("#container").html(template_bar);
 
             // SE LISTAN TODOS LOS PRODUCTOS
             listarProductos();
+            
+            // LIMPIAR FORMULARIO SI FUE EXITOSO
+            if(respuesta.status === 'success') {
+                resetForm();
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error("Error al agregar producto:", error);
+            mostrarResultado("error", "Error al agregar producto");
         }
-    };
-    client.send(productoJsonString);
+    });
 }
 
-// FUNCIÓN CALLBACK DE BOTÓN "Eliminar"
-function eliminarProducto() {
-    if( confirm("De verdad deseas eliinar el Producto") ) {
-        var id = event.target.parentElement.parentElement.getAttribute("productId");
-        //NOTA: OTRA FORMA PODRÍA SER USANDO EL NOMBRE DE LA CLASE, COMO EN LA PRÁCTICA 7
+// FUNCIÓN PARA CARGAR PRODUCTO EN FORMULARIO PARA EDITAR
+function cargarProductoParaEditar(productId) {
+    // USAMOS product-search.php PARA OBTENER UN PRODUCTO ESPECÍFICO
+    $.ajax({
+        url: './backend/product-search.php?search=' + productId,
+        type: 'GET',
+        dataType: 'json',
+        success: function(productos) {
+            if (productos && productos.length > 0) {
+                const producto = productos[0]; // Tomamos el primer resultado
+                
+                $("#productId").val(producto.id);
+                $("#name").val(producto.nombre);
+                
+                // Crear JSON con los datos del producto
+                const productData = {
+                    precio: producto.precio,
+                    unidades: producto.unidades,
+                    modelo: producto.modelo,
+                    marca: producto.marca,
+                    detalles: producto.detalles,
+                    imagen: producto.imagen
+                };
+                
+                $("#description").val(JSON.stringify(productData, null, 2));
+                $("#submit-btn").text("Actualizar Producto");
+                $("#cancel-edit").removeClass("d-none");
+                
+                mostrarResultado("info", "Modo edición: Los datos se han cargado. Modifica y haz clic en 'Actualizar Producto' para guardar como nuevo producto.");
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error("Error al cargar producto:", error);
+            mostrarResultado("error", "Error al cargar producto");
+        }
+    });
+}
 
-        // SE CREA EL OBJETO DE CONEXIÓN ASÍNCRONA AL SERVIDOR
-        var client = getXMLHttpRequest();
-        client.open('GET', './backend/product-delete.php?id='+id, true);
-        client.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-        client.onreadystatechange = function () {
-            // SE VERIFICA SI LA RESPUESTA ESTÁ LISTA Y FUE SATISFACTORIA
-            if (client.readyState == 4 && client.status == 200) {
-                console.log(client.responseText);
-                // SE OBTIENE EL OBJETO DE DATOS A PARTIR DE UN STRING JSON
-                let respuesta = JSON.parse(client.responseText);
+// FUNCIÓN PARA ELIMINAR PRODUCTO
+function eliminarProducto(productId) {
+    if( confirm("¿De verdad deseas eliminar el Producto?") ) {
+        $.ajax({
+            url: './backend/product-delete.php?id=' + productId,
+            type: 'GET',
+            dataType: 'json',
+            success: function(respuesta) {
+                console.log(respuesta);
+                
                 // SE CREA UNA PLANTILLA PARA CREAR INFORMACIÓN DE LA BARRA DE ESTADO
                 let template_bar = '';
                 template_bar += `
-                            <li style="list-style: none;">status: ${respuesta.status}</li>
-                            <li style="list-style: none;">message: ${respuesta.message}</li>
-                        `;
+                    <li style="list-style: none;">status: ${respuesta.status}</li>
+                    <li style="list-style: none;">message: ${respuesta.message}</li>
+                `;
 
                 // SE HACE VISIBLE LA BARRA DE ESTADO
-                document.getElementById("product-result").className = "card my-4 d-block";
+                $("#product-result").removeClass("d-none");
                 // SE INSERTA LA PLANTILLA PARA LA BARRA DE ESTADO
-                document.getElementById("container").innerHTML = template_bar;
+                $("#container").html(template_bar);
 
                 // SE LISTAN TODOS LOS PRODUCTOS
                 listarProductos();
+            },
+            error: function(xhr, status, error) {
+                console.error("Error al eliminar producto:", error);
+                mostrarResultado("error", "Error al eliminar producto");
             }
-        };
-        client.send();
+        });
     }
 }
 
-// SE CREA EL OBJETO DE CONEXIÓN COMPATIBLE CON EL NAVEGADOR
-function getXMLHttpRequest() {
-    var objetoAjax;
+// FUNCIÓN PARA MOSTRAR RESULTADOS
+function mostrarResultado(status, message) {
+    const template_bar = `
+        <li style="list-style: none;">status: ${status}</li>
+        <li style="list-style: none;">message: ${message}</li>
+    `;
 
-    try{
-        objetoAjax = new XMLHttpRequest();
-    }catch(err1){
-        /**
-         * NOTA: Las siguientes formas de crear el objeto ya son obsoletas
-         *       pero se comparten por motivos historico-académicos.
-         */
-        try{
-            // IE7 y IE8
-            objetoAjax = new ActiveXObject("Msxml2.XMLHTTP");
-        }catch(err2){
-            try{
-                // IE5 y IE6
-                objetoAjax = new ActiveXObject("Microsoft.XMLHTTP");
-            }catch(err3){
-                objetoAjax = false;
-            }
-        }
-    }
-    return objetoAjax;
+    $("#product-result").removeClass("d-none");
+    $("#container").html(template_bar);
 }
+
+// FUNCIÓN PARA RESETEAR FORMULARIO
+function resetForm() {
+    $("#product-form")[0].reset();
+    $("#productId").val("");
+    $("#description").val(JSON.stringify(baseJSON, null, 2));
+    $("#submit-btn").text("Agregar Producto");
+    $("#cancel-edit").addClass("d-none");
+}
+
+// EVENTOS CON JQUERY
+$(document).ready(function() {
+    // INICIALIZAR LA APLICACIÓN
+    init();
+
+    // BÚSQUEDA EN TIEMPO REAL (se activa al teclear)
+    $("#search").on('input', function() {
+        buscarProductos($(this).val());
+    });
+
+    // PREVENIR ENVÍO DEL FORMULARIO DE BÚSQUEDA
+    $("#search-form").on('submit', function(e) {
+        e.preventDefault();
+        buscarProductos($("#search").val());
+    });
+
+    // AGREGAR PRODUCTO
+    $("#product-form").on('submit', agregarProducto);
+
+    // CANCELAR EDICIÓN
+    $("#cancel-edit").on('click', resetForm);
+
+    // EVENTOS DELEGADOS PARA BOTONES DINÁMICOS
+    $(document).on('click', '.product-edit', function() {
+        const productId = $(this).data('id');
+        cargarProductoParaEditar(productId);
+    });
+
+    $(document).on('click', '.product-delete', function() {
+        const productId = $(this).data('id');
+        eliminarProducto(productId);
+    });
+});
