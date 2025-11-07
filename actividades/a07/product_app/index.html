@@ -3,33 +3,15 @@
   <head>
     <meta charset="UTF-8">
     <title>ProductApp</title>
-    
     <!-- BOOTSTRAP 4  -->
     <link rel="stylesheet" href="https://bootswatch.com/4/superhero/bootstrap.min.css">
     <style>
-      .validation-message {
-        font-size: 0.875em;
-        display: none;
-      }
-      .validation-error {
-        display: block !important;
-        color: #dc3545 !important;
-      }
-      .validation-success {
-        display: block !important;
-        color: #28a745 !important;
-      }
-      .is-invalid {
-        border-color: #dc3545;
-      }
-      .is-valid {
-        border-color: #28a745;
-      }
       .status-bar {
         padding: 10px;
         margin: 10px 0;
         border-radius: 4px;
         display: none;
+        font-weight: bold;
       }
       .status-error {
         background-color: #f8d7da;
@@ -68,57 +50,49 @@
             <div class="card-body">
               <!-- FORMULARIO PARA AGREGAR PRODUCTO -->
               <form id="product-form">
-
-                <!-- BARRA DE ESTADO GLOBAL -->
+                <!-- BARRA DE ESTADO GLOBAL (PUNTO 4) -->
                 <div class="status-bar" id="global-status"></div>
                 
                 <!-- CAMPO NOMBRE -->
                 <div class="form-group">
                   <label for="name">Nombre del Producto *</label>
                   <input class="form-control" type="text" id="name" placeholder="Nombre de producto" required>
-                  <small class="form-text text-muted validation-message" id="name-message"></small>
                 </div>
                 
                 <!-- CAMPO MARCA -->
                 <div class="form-group">
                   <label for="marca">Marca *</label>
                   <input class="form-control" type="text" id="marca" placeholder="Marca del producto" required>
-                  <small class="form-text text-muted validation-message" id="marca-message"></small>
                 </div>
                 
                 <!-- CAMPO MODELO -->
                 <div class="form-group">
                   <label for="modelo">Modelo *</label>
                   <input class="form-control" type="text" id="modelo" placeholder="Modelo del producto" required>
-                  <small class="form-text text-muted validation-message" id="modelo-message"></small>
                 </div>
                 
                 <!-- CAMPO PRECIO -->
                 <div class="form-group">
                   <label for="precio">Precio *</label>
                   <input class="form-control" type="number" id="precio" placeholder="0.00" step="0.01" min="0" required>
-                  <small class="form-text text-muted validation-message" id="precio-message"></small>
                 </div>
                 
                 <!-- CAMPO UNIDADES -->
                 <div class="form-group">
                   <label for="unidades">Unidades *</label>
                   <input class="form-control" type="number" id="unidades" placeholder="0" min="0" required>
-                  <small class="form-text text-muted validation-message" id="unidades-message"></small>
                 </div>
                 
                 <!-- CAMPO DETALLES -->
                 <div class="form-group">
                   <label for="detalles">Detalles</label>
                   <textarea class="form-control" id="detalles" placeholder="Detalles del producto" rows="3"></textarea>
-                  <small class="form-text text-muted validation-message" id="detalles-message"></small>
                 </div>
                 
                 <!-- CAMPO IMAGEN -->
                 <div class="form-group">
                   <label for="imagen">Imagen (URL)</label>
                   <input class="form-control" type="url" id="imagen" placeholder="https://ejemplo.com/imagen.jpg">
-                  <small class="form-text text-muted validation-message" id="imagen-message"></small>
                 </div>
                 
                 <input type="hidden" id="productId">
@@ -134,7 +108,6 @@
         <div class="col-md-7">
           <div class="card my-4" id="product-result">
             <div class="card-body">
-
               <!-- RESULTADO -->
               <ul id="container"></ul>
             </div>
@@ -158,7 +131,6 @@
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"
       integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
       crossorigin="anonymous"></script>
-
     <!-- Lógica del Frontend -->
     <script src="app.js"></script>
   </body>
