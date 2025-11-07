@@ -1,5 +1,3 @@
-// app.js
-// Usa rutas relativas al folder backend/*.php (ajusta si tu estructura es distinta)
 $(function() {
   const DEFAULT_IMAGE = 'images/default-product.png'; // ruta por defecto si no se registra imagen
   let nameTimer = null;
@@ -26,7 +24,7 @@ $(function() {
   }
   const globalMessage = $('#globalMessage');
 
-  // VALIDADORES (mismos que servidor)
+  // VALIDADORES 
   function vNombre(val) {
     val = (val||'').trim();
     if (val === '') return {ok:false, msg:'El nombre es requerido.'};
@@ -118,7 +116,7 @@ $(function() {
     });
   });
 
-  // Nombre: validación en tiempo real + chequeo asíncrono (debounce)
+  // Nombre: validación en tiempo real + chequeo asíncrono 
   fields.nombre.on('input', function() {
     const val = $(this).val();
     // Validación local inmediata
@@ -179,12 +177,10 @@ $(function() {
         errors[k] = r.msg;
         setErr(k, r.msg);
       } else {
-        // if no prior async conflict (for nombre) keep ok
         if (k !== 'nombre') setOk(k);
       }
     }
 
-    // If name local ok, ensure server uniqueness before submit (synchronous-ish via ajax)
     if (!hasError) {
       const current_id = fields.productId.val() || '';
       $.post('./backend/product-check-name.php', { nombre: values.nombre, current_id }, function(resp) {
