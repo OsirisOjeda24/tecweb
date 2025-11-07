@@ -1,374 +1,354 @@
-let edit = false;
+// app.js
+// Usa rutas relativas al folder backend/*.php (ajusta si tu estructura es distinta)
+$(function() {
+  const DEFAULT_IMAGE = 'images/default-product.png'; // ruta por defecto si no se registra imagen
+  let nameTimer = null;
+  let editing = false;
 
-$(document).ready(function(){
-    $('#product-result').hide();
-    listarProductos();
+  // ELEMENTOS
+  const fields = {
+    nombre: $('#name'),
+    marca: $('#marca'),
+    modelo: $('#modelo'),
+    precio: $('#precio'),
+    detalles: $('#detalles'),
+    unidades: $('#unidades'),
+    imagen: $('#imagen'),
+    productId: $('#productId')
+  };
 
-    // INICIALIZAR EVENTOS DE VALIDACIÓN 
-    initValidationEvents();
+  const bars = {};
+  const msgs = {};
+  for (let k in fields) {
+    bars[k] = $('#bar-' + k);
+    bars[k].inner = $('#bar-' + k + '-inner');
+    msgs[k] = $('#msg-' + k);
+  }
+  const globalMessage = $('#globalMessage');
 
-    function initValidationEvents() {
-        // VALIDACIÓN CUANDO EL CAMPO PIERDE EL FOCO 
-        $('#name, #marca, #modelo, #precio, #unidades').on('blur', function() {
-            validateField(this);
-        });
+  // VALIDADORES (mismos que servidor)
+  function vNombre(val) {
+    val = (val||'').trim();
+    if (val === '') return {ok:false, msg:'El nombre es requerido.'};
+    if (val.length > 100) return {ok:false, msg:'Máximo 100 caracteres.'};
+    return {ok:true, msg:'Nombre válido.'};
+  }
+  function vMarca(val) {
+    if (!val) return {ok:false, msg:'La marca es requerida.'};
+    // comprobar que esté en select
+    const allowed = $('#marca option').map((i,o)=>o.value).get().filter(v=>v);
+    if (allowed.indexOf(val) === -1) return {ok:false, msg:'Marca inválida.'};
+    return {ok:true, msg:'Marca válida.'};
+  }
+  function vModelo(val) {
+    val = (val||'').trim();
+    if (val === '') return {ok:false, msg:'El modelo es requerido.'};
+    if (val.length > 25) return {ok:false, msg:'Máximo 25 caracteres.'};
+    if (!/^[A-Za-z0-9 _-]+$/.test(val)) return {ok:false, msg:'Solo caracteres alfanuméricos, espacio, - y _ permitidos.'};
+    return {ok:true, msg:'Modelo válido.'};
+  }
+  function vPrecio(val) {
+    if (val === '' || val === null || val === undefined) return {ok:false, msg:'El precio es requerido.'};
+    if (isNaN(val)) return {ok:false, msg:'Precio debe ser numérico.'};
+    const f = parseFloat(val);
+    if (!(f > 99.99)) return {ok:false, msg:'El precio debe ser mayor a 99.99.'};
+    return {ok:true, msg:'Precio válido.'};
+  }
+  function vDetalles(val) {
+    val = (val||'').trim();
+    if (val.length > 250) return {ok:false, msg:'Máximo 250 caracteres.'};
+    return {ok:true, msg: val ? 'Detalles válidos.' : 'Detalles vacíos (opcionales).'};
+  }
+  function vUnidades(val) {
+    if (val === '' || val === null || val === undefined) return {ok:false, msg:'Las unidades son requeridas.'};
+    if (!/^\d+$/.test(String(val))) return {ok:false, msg:'Las unidades deben ser un entero >= 0.'};
+    const n = parseInt(val, 10);
+    if (n < 0) return {ok:false, msg:'Las unidades deben ser >= 0.'};
+    return {ok:true, msg:'Unidades válidas.'};
+  }
+  function vImagen(val) {
+    // opcional; si no se registra, se usará default en servidor
+    return {ok:true, msg: val ? 'Ruta de imagen válida.' : 'Se usará imagen por defecto.'};
+  }
 
-        // VALIDACIÓN ASÍNCRONA DEL NOMBRE 
-        $('#name').on('input', function() {
-            const name = $(this).val().trim();
-            if (name.length >= 3) {
-                validateProductName(name);
-            }
-        });
-    }
+  // UI helpers
+  function showBar(key) {
+    bars[key].show();
+    bars[key].inner.css({width:'20%', background:'#ffc107'});
+  }
+  function setOk(key) {
+    bars[key].show();
+    bars[key].inner.css({width:'100%', background:'#28a745'});
+    msgs[key].removeClass('field-err').addClass('field-ok').text('✔ ' + validators[key](fields[key].val()).msg);
+  }
+  function setErr(key, text) {
+    bars[key].show();
+    bars[key].inner.css({width:'100%', background:'#dc3545'});
+    msgs[key].removeClass('field-ok').addClass('field-err').text('✖ ' + text);
+  }
+  function hideBar(key) {
+    bars[key].hide();
+    bars[key].inner.css({width:'0'});
+    msgs[key].text('');
+  }
 
-    // FUNCIÓN PARA VALIDAR UN CAMPO INDIVIDUAL 
-    function validateField(field) {
-        const fieldId = field.id;
-        const value = $(field).val().trim();
-        let isValid = true;
-        let message = '';
+  // Asociar validadores
+  const validators = {
+    nombre: function(v){ return vNombre(v); },
+    marca: function(v){ return vMarca(v); },
+    modelo: function(v){ return vModelo(v); },
+    precio: function(v){ return vPrecio(v); },
+    detalles: function(v){ return vDetalles(v); },
+    unidades: function(v){ return vUnidades(v); },
+    imagen: function(v){ return vImagen(v); }
+  };
 
-        // VALIDACIONES
-        switch(fieldId) {
-            case 'name':
-                if (value === '') {
-                    isValid = false;
-                    message = 'El nombre es requerido';
-                } else if (value.length < 3) {
-                    isValid = false;
-                    message = 'Mínimo 3 caracteres';
-                } else if (!/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]+$/.test(value)) {
-                    isValid = false;
-                    message = 'Solo letras, números y espacios';
-                } else {
-                    message = 'Válido';
-                }
-                break;
+  // Blur handlers: validar cuando se pierde el foco
+  Object.keys(fields).forEach(k => {
+    if (k === 'productId') return;
+    fields[k].on('focus', function(){ showBar(k); });
+    fields[k].on('blur', function(){
+      const val = $(this).val();
+      const res = validators[k](val);
+      if (res.ok) {
+        setOk(k);
+      } else {
+        setErr(k, res.msg);
+      }
+    });
+  });
 
-            case 'marca':
-                if (value === '') {
-                    isValid = false;
-                    message = 'La marca es requerida';
-                } else if (value.length < 2) {
-                    isValid = false;
-                    message = 'Mínimo 2 caracteres';
-                } else {
-                    message = 'Válido';
-                }
-                break;
-
-            case 'modelo':
-                if (value === '') {
-                    isValid = false;
-                    message = 'El modelo es requerido';
-                } else if (value.length < 2) {
-                    isValid = false;
-                    message = 'Mínimo 2 caracteres';
-                } else {
-                    message = 'Válido';
-                }
-                break;
-
-            case 'precio':
-                if (value === '') {
-                    isValid = false;
-                    message = 'El precio es requerido';
-                } else if (isNaN(parseFloat(value))) {
-                    isValid = false;
-                    message = 'Debe ser un número válido';
-                } else if (parseFloat(value) <= 0) {
-                    isValid = false;
-                    message = 'Debe ser mayor a 0';
-                } else if (parseFloat(value) > 999999.99) {
-                    isValid = false;
-                    message = 'Precio demasiado alto';
-                } else {
-                    message = 'Válido';
-                }
-                break;
-
-            case 'unidades':
-                if (value === '') {
-                    isValid = false;
-                    message = 'Las unidades son requeridas';
-                } else if (isNaN(parseInt(value))) {
-                    isValid = false;
-                    message = 'Debe ser un número entero';
-                } else if (parseInt(value) < 0) {
-                    isValid = false;
-                    message = 'No pueden ser negativas';
-                } else if (parseInt(value) > 10000) {
-                    isValid = false;
-                    message = 'Máximo 10,000 unidades';
-                } else {
-                    message = 'Válido';
-                }
-                break;
-        }
-
-        // MOSTRAR ESTADO EN BARRA DE ESTADO (PUNTO 4)
-        updateStatusBar(fieldId, isValid, message);
-        
-        return isValid;
-    }
-
-    // VALIDACIÓN ASÍNCRONA DEL NOMBRE 
-    function validateProductName(name) {
-        if (name.length < 3) return;
-
-        $.get('./backend/check_product.php', { nombre: name }, function(response) {
-            if (response.exists) {
-                updateStatusBar('name', false, response.message);
-            } else {
-                updateStatusBar('name', true, 'Nombre disponible');
-            }
-        }, 'json').fail(function() {
-            updateStatusBar('name', false, 'Error al validar nombre');
-        });
-    }
-
-    // ACTUALIZAR BARRA DE ESTADO 
-    function updateStatusBar(fieldId, isValid, message) {
-        const statusBar = $('#global-status');
-        let fieldName = '';
-        
-        // MAPEAR ID DEL CAMPO A NOMBRE LEGIBLE
-        switch(fieldId) {
-            case 'name': fieldName = 'Nombre'; break;
-            case 'marca': fieldName = 'Marca'; break;
-            case 'modelo': fieldName = 'Modelo'; break;
-            case 'precio': fieldName = 'Precio'; break;
-            case 'unidades': fieldName = 'Unidades'; break;
-        }
-
-        if (isValid) {
-            statusBar.removeClass('status-error').addClass('status-success')
-                     .text(`✓ ${fieldName}: ${message}`).show();
-        } else {
-            statusBar.removeClass('status-success').addClass('status-error')
-                     .text(`✗ ${fieldName}: ${message}`).show();
-        }
-
-        // OCULTAR BARRA DESPUÉS DE 3 SEGUNDOS SI ES ÉXITO
-        if (isValid) {
-            setTimeout(() => {
-                if (statusBar.hasClass('status-success')) {
-                    statusBar.fadeOut();
-                }
-            }, 3000);
-        }
-    }
-
-    // VALIDAR TODOS LOS CAMPOS REQUERIDOS 
-    function validateAllFields() {
-        let allValid = true;
-        let firstError = '';
-
-        $('#name, #marca, #modelo, #precio, #unidades').each(function() {
-            if (!validateField(this)) {
-                allValid = false;
-                const fieldId = this.id;
-                let fieldName = '';
-                switch(fieldId) {
-                    case 'name': fieldName = 'Nombre'; break;
-                    case 'marca': fieldName = 'Marca'; break;
-                    case 'modelo': fieldName = 'Modelo'; break;
-                    case 'precio': fieldName = 'Precio'; break;
-                    case 'unidades': fieldName = 'Unidades'; break;
-                }
-                firstError = `Complete correctamente el campo ${fieldName}`;
-                return false; // Salir del each
-            }
-        });
-
-        if (!allValid && firstError) {
-            $('#global-status').removeClass('status-success').addClass('status-error')
-                              .text(`✗ ${firstError}`).show();
-        }
-
-        return allValid;
-    }
-
-    // CONSTRUIR DATOS DEL PRODUCTO
-    function buildProductJSON() {
-        return {
-            nombre: $('#name').val().trim(),
-            marca: $('#marca').val().trim(),
-            modelo: $('#modelo').val().trim(),
-            precio: parseFloat($('#precio').val()),
-            unidades: parseInt($('#unidades').val()),
-            detalles: $('#detalles').val().trim(),
-            imagen: $('#imagen').val().trim(),
-            id: $('#productId').val() || null
-        };
-    }
-
-    // ENVÍO DEL FORMULARIO 
-    $('#product-form').submit(function(e) {
-        e.preventDefault();
-
-        // VALIDAR QUE LOS CAMPOS REQUERIDOS NO SEAN VACÍOS
-        if (!validateAllFields()) {
-            return;
-        }
-
-        const postData = buildProductJSON();
-        const url = edit === false ? './backend/product-add.php' : './backend/product-edit.php';
-        
-        $.post(url, postData, function(response) {
-            let respuesta;
-            try {
-                respuesta = typeof response === 'string' ? JSON.parse(response) : response;
-            } catch (e) {
-                respuesta = { status: 'error', message: 'Error al procesar respuesta' };
-            }
-            
-            // MOSTRAR RESULTADO
-            let template_bar = '';
-            template_bar += `
-                <li style="list-style: none;">status: ${respuesta.status}</li>
-                <li style="list-style: none;">message: ${respuesta.message}</li>
-            `;
-            
-            $('#product-result').show();
-            $('#container').html(template_bar);
-            
-            // MOSTRAR EN BARRA DE ESTADO
-            if (respuesta.status === 'success') {
-                $('#global-status').removeClass('status-error').addClass('status-success')
-                                  .text(`✓ ${respuesta.message}`).show();
-                resetForm();
-            } else {
-                $('#global-status').removeClass('status-success').addClass('status-error')
-                                  .text(`✗ ${respuesta.message}`).show();
-            }
-            
-            listarProductos();
-            edit = false;
+  // Nombre: validación en tiempo real + chequeo asíncrono (debounce)
+  fields.nombre.on('input', function() {
+    const val = $(this).val();
+    // Validación local inmediata
+    const local = vNombre(val);
+    if (!local.ok) {
+      setErr('nombre', local.msg);
+    } else {
+      // antes de llamar al servidor, muestra barra de loading
+      bars.nombre.show();
+      bars.nombre.inner.css({width:'40%', background:'#17a2b8'});
+      msgs.nombre.removeClass('field-ok field-err').text('Comprobando disponibilidad...');
+      // debounce
+      if (nameTimer) clearTimeout(nameTimer);
+      nameTimer = setTimeout(()=> {
+        const current_id = fields.productId.val() || '';
+        $.post('./backend/product-check-name.php', { nombre: val, current_id }, function(resp) {
+          // resp puede venir como JSON string o ya parseado
+          let data = resp;
+          if (typeof resp === 'string') {
+            try { data = JSON.parse(resp); } catch(e){ data = {exists:false, message:'Error'}; }
+          }
+          if (data.exists) {
+            setErr('nombre', data.message || 'El nombre ya existe.');
+          } else {
+            setOk('nombre');
+            msgs.nombre.text('✔ ' + (data.message || 'Nombre disponible.'));
+          }
         }).fail(function() {
-            $('#global-status').removeClass('status-success').addClass('status-error')
-                              .text('✗ Error de conexión con el servidor').show();
+          setErr('nombre', 'Error al verificar nombre en servidor.');
         });
-    });
+      }, 450);
+    }
+  });
 
-    // REINICIAR FORMULARIO
-    function resetForm() {
-        $('#product-form')[0].reset();
-        $('#productId').val('');
-        $('#global-status').hide();
-        $('#submit-btn').text('Agregar Producto');
+  // Submit: validar todos los campos requeridos y luego enviar
+  $('#product-form').on('submit', function(e) {
+    e.preventDefault();
+    globalMessage.text('').removeClass('text-success text-danger');
+
+    // Re-validate all fields
+    const values = {
+      nombre: fields.nombre.val(),
+      marca: fields.marca.val(),
+      modelo: fields.modelo.val(),
+      precio: fields.precio.val(),
+      detalles: fields.detalles.val(),
+      unidades: fields.unidades.val(),
+      imagen: fields.imagen.val()
+    };
+
+    let hasError = false;
+    const errors = {};
+
+    for (let k in validators) {
+      const r = validators[k](values[k]);
+      if (!r.ok) {
+        hasError = true;
+        errors[k] = r.msg;
+        setErr(k, r.msg);
+      } else {
+        // if no prior async conflict (for nombre) keep ok
+        if (k !== 'nombre') setOk(k);
+      }
     }
 
-    function listarProductos() {
-        $.ajax({
-            url: './backend/product_list.php',
-            type: 'GET',
-            success: function(response) {
-                const productos = JSON.parse(response);
-                if(Object.keys(productos).length > 0) {
-                    let template = '';
-                    productos.forEach(producto => {
-                        let descripcion = '';
-                        descripcion += '<li>precio: '+producto.precio+'</li>';
-                        descripcion += '<li>unidades: '+producto.unidades+'</li>';
-                        descripcion += '<li>modelo: '+producto.modelo+'</li>';
-                        descripcion += '<li>marca: '+producto.marca+'</li>';
-                        descripcion += '<li>detalles: '+producto.detalles+'</li>';
-                        template += `
-                            <tr productId="${producto.id}">
-                                <td>${producto.id}</td>
-                                <td><a href="#" class="product-item">${producto.nombre}</a></td>
-                                <td><ul>${descripcion}</ul></td>
-                                <td>
-                                    <button class="product-delete btn btn-danger">
-                                        Eliminar
-                                    </button>
-                                </td>
-                            </tr>
-                        `;
-                    });
-                    $('#products').html(template);
-                }
-            }
-        });
-    }
-
-    $('#search').keyup(function() {
-        if($('#search').val()) {
-            let search = $('#search').val();
-            $.ajax({
-                url: './backend/product_search.php?search='+$('#search').val(),
-                data: {search},
-                type: 'GET',
-                success: function (response) {
-                    if(!response.error) {
-                        const productos = JSON.parse(response);
-                        if(Object.keys(productos).length > 0) {
-                            let template = '';
-                            let template_bar = '';
-                            productos.forEach(producto => {
-                                let descripcion = '';
-                                descripcion += '<li>precio: '+producto.precio+'</li>';
-                                descripcion += '<li>unidades: '+producto.unidades+'</li>';
-                                descripcion += '<li>modelo: '+producto.modelo+'</li>';
-                                descripcion += '<li>marca: '+producto.marca+'</li>';
-                                descripcion += '<li>detalles: '+producto.detalles+'</li>';
-                                template += `
-                                    <tr productId="${producto.id}">
-                                        <td>${producto.id}</td>
-                                        <td><a href="#" class="product-item">${producto.nombre}</a></td>
-                                        <td><ul>${descripcion}</ul></td>
-                                        <td>
-                                            <button class="product-delete btn btn-danger">
-                                                Eliminar
-                                            </button>
-                                        </td>
-                                    </tr>
-                                `;
-                                template_bar += `<li>${producto.nombre}</il>`;
-                            });
-                            $('#product-result').show();
-                            $('#container').html(template_bar);
-                            $('#products').html(template);    
-                        }
-                    }
-                }
-            });
+    // If name local ok, ensure server uniqueness before submit (synchronous-ish via ajax)
+    if (!hasError) {
+      const current_id = fields.productId.val() || '';
+      $.post('./backend/product-check-name.php', { nombre: values.nombre, current_id }, function(resp) {
+        let data = resp;
+        if (typeof resp === 'string') {
+          try { data = JSON.parse(resp); } catch(e){ data = {exists:false, message:''}; }
+        }
+        if (data.exists) {
+          setErr('nombre', data.message || 'El nombre ya existe.');
+          globalMessage.addClass('text-danger').text('Corrige los errores antes de guardar.');
+          return;
         } else {
-            $('#product-result').hide();
-        }
-    });
+          // preparar payload
+          const payload = {
+            nombre: values.nombre,
+            marca: values.marca,
+            modelo: values.modelo,
+            precio: values.precio,
+            detalles: values.detalles,
+            unidades: values.unidades,
+            imagen: values.imagen
+          };
+          // si editing -> include id and use edit endpoint
+          const id = fields.productId.val();
+          const url = id ? './backend/product-edit.php' : './backend/product-add.php';
+          if (id) payload.id = id;
 
-    $(document).on('click', '.product-delete', function(e) {
-        if(confirm('¿Realmente deseas eliminar el producto?')) {
-            const element = $(this).closest('tr');
-            const id = $(element).attr('productId');
-            $.post('./backend/product_delete.php', {id}, function(response) {
-                $('#product-result').hide();
-                listarProductos();
-            });
+          $.post(url, payload, function(resp2) {
+            let res = resp2;
+            if (typeof resp2 === 'string') {
+              try { res = JSON.parse(resp2); } catch(e) { res = {success:false, errors:{}, message:'Respuesta inválida'}; }
+            }
+            if (res.success) {
+              globalMessage.addClass('text-success').text(res.message || 'Operación exitosa.');
+              resetForm();
+              fetchProducts();
+            } else {
+              globalMessage.addClass('text-danger').text('Errores al guardar. Revisa los campos.');
+              if (res.errors) {
+                for (let k in res.errors) {
+                  if (msgs[k]) setErr(k, res.errors[k]);
+                }
+              }
+            }
+          }).fail(function() {
+            globalMessage.addClass('text-danger').text('Error del servidor al guardar el producto.');
+          });
         }
-    });
+      }).fail(function() {
+        setErr('nombre', 'Error al verificar nombre en servidor.');
+        globalMessage.addClass('text-danger').text('No se pudo verificar nombre.');
+      });
+    } else {
+      globalMessage.addClass('text-danger').text('Corrige los errores antes de guardar.');
+    }
+  });
 
-    $(document).on('click', '.product-item', function(e) {
-        const element = $(this).closest('tr');
-        const id = $(element).attr('productId');
-        $.post('./backend/product_single.php', {id}, function(response) {
-            let product = JSON.parse(response);
-            $('#name').val(product.nombre);
-            $('#marca').val(product.marca);
-            $('#modelo').val(product.modelo);
-            $('#precio').val(product.precio);
-            $('#unidades').val(product.unidades);
-            $('#detalles').val(product.detalles);
-            $('#imagen').val(product.imagen);
-            $('#productId').val(product.id);
-            edit = true;
-            $('#submit-btn').text('Actualizar Producto');
-            $('#global-status').removeClass('status-error').addClass('status-success')
-                              .text('Modo edición activado').show();
-        });
-        e.preventDefault();
+  // Cargar lista de productos
+  function fetchProducts() {
+    $.get('./backend/product-list.php', function(resp) {
+      let products = resp;
+      if (typeof resp === 'string') {
+        try { products = JSON.parse(resp); } catch(e){ products = []; }
+      }
+      let tpl = '';
+      products.forEach(p => {
+        tpl += `
+          <tr data-id="${p.id}">
+            <td>${p.id}</td>
+            <td><a href="#" class="product-item">${p.nombre}</a></td>
+            <td>
+              <ul style="margin:0;padding-left:16px;">
+                <li>precio: ${p.precio}</li>
+                <li>unidades: ${p.unidades}</li>
+                <li>modelo: ${p.modelo}</li>
+                <li>marca: ${p.marca}</li>
+                <li>detalles: ${p.detalles}</li>
+              </ul>
+            </td>
+            <td>
+              <button class="btn btn-sm btn-danger product-delete">Eliminar</button>
+            </td>
+          </tr>
+        `;
+      });
+      $('#products').html(tpl);
     });
+  }
+
+  // Buscar (botón)
+  $('#btnSearch').on('click', function() {
+    const q = $('#search').val().trim();
+    if (!q) { fetchProducts(); return; }
+    $.get('./backend/product-search.php', { search: q }, function(resp) {
+      let products = resp;
+      if (typeof resp === 'string') {
+        try { products = JSON.parse(resp); } catch(e){ products = []; }
+      }
+      let tpl = '';
+      let tplBar = '';
+      products.forEach(p => {
+        tpl += `
+          <tr data-id="${p.id}">
+            <td>${p.id}</td>
+            <td><a href="#" class="product-item">${p.nombre}</a></td>
+            <td>${p.detalles}</td>
+            <td><button class="btn btn-sm btn-danger product-delete">Eliminar</button></td>
+          </tr>
+        `;
+        tplBar += `<li>${p.nombre}</li>`;
+      });
+      $('#products').html(tpl);
+      if (products.length) {
+        $('#product-result').show();
+        $('#container').html(tplBar);
+      } else {
+        $('#product-result').hide();
+      }
+    });
+  });
+
+  // Delegated events: delete
+  $(document).on('click', '.product-delete', function() {
+    if (!confirm('¿Realmente deseas eliminar el producto?')) return;
+    const id = $(this).closest('tr').data('id');
+    $.post('./backend/product-delete.php', { id }, function(resp) {
+      // no importa la respuesta, refrescar lista
+      fetchProducts();
+    });
+  });
+
+  // Delegated events: click product to edit
+  $(document).on('click', '.product-item', function(e) {
+    e.preventDefault();
+    const id = $(this).closest('tr').data('id');
+    $.post('./backend/product-single.php', { id }, function(resp) {
+      let p = resp;
+      if (typeof resp === 'string') {
+        try { p = JSON.parse(resp); } catch(e){ p = {}; }
+      }
+      if (!p || !p.id) return;
+      // llenar form
+      fields.productId.val(p.id);
+      fields.nombre.val(p.nombre);
+      fields.marca.val(p.marca);
+      fields.modelo.val(p.modelo);
+      fields.precio.val(p.precio);
+      fields.detalles.val(p.detalles);
+      fields.unidades.val(p.unidades);
+      fields.imagen.val(p.imagen);
+      editing = true;
+      // show ok statuses
+      for (let k in validators) setOk(k);
+    });
+  });
+
+  // Reset form helper
+  function resetForm() {
+    $('#product-form')[0].reset();
+    fields.productId.val('');
+    for (let k in bars) hideBar(k);
+    editing = false;
+  }
+
+  // Inicializar
+  fetchProducts();
 });
