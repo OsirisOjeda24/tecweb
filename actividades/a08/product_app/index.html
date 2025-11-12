@@ -1,231 +1,321 @@
 <!DOCTYPE html>
 <html lang="es">
-  <head>
+<head>
     <meta charset="UTF-8">
-    <title>MarketZone - Sistema de Productos</title>
-    <!-- BOOTSTRAP 4 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProductApp</title>
+    
+    <!-- Bootstrap 4 CSS - Framework para estilos responsive -->
     <link rel="stylesheet" href="https://bootswatch.com/4/superhero/bootstrap.min.css">
+    
     <style>
-      .status-bar { 
-        height: 6px; 
-        border-radius: 4px; 
-        background: #e9ecef; 
-        overflow: hidden; 
-        margin-top: 6px; 
-        display: none; 
-      }
-      .status-bar .inner { 
-        height: 100%; 
-        width: 0; 
-        transition: width .3s ease, background .3s ease; 
-      }
-      .field-msg { 
-        font-size: 0.85rem; 
-        margin-top: 4px; 
-        min-height: 18px; 
-        font-weight: 500;
-      }
-      .field-ok { color: #28a745; }
-      .field-err { color: #dc3545; }
-      .product-image { 
-        max-width: 80px; 
-        max-height: 60px; 
-        object-fit: cover;
-        border-radius: 4px;
-      }
-      .action-buttons .btn {
-        margin: 2px;
-        font-size: 0.8rem;
-      }
-      .card {
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        border: 1px solid rgba(255,255,255,0.1);
-      }
-      .search-box {
-        max-width: 400px;
-      }
+        /* Barras de estado para validación visual */
+        .status-bar { 
+            height: 6px; 
+            border-radius: 4px; 
+            background: #e9ecef; 
+            overflow: hidden; 
+            margin-top: 6px; 
+            display: none; /* Ocultas por defecto */
+        }
+        
+        /* Barra interna que muestra el progreso de validación */
+        .status-bar .inner { 
+            height: 100%; 
+            width: 0; 
+            transition: width .3s ease, background .3s ease; /* Animación suave */
+        }
+        
+        /* Mensajes de campo - feedback al usuario */
+        .field-msg { 
+            font-size: 0.85rem; 
+            margin-top: 4px; 
+            min-height: 18px; 
+            font-weight: 500;
+        }
+        
+        /* Estado válido */
+        .field-ok { color: #ffffff; }
+        
+        /* Estado inválido */
+        .field-err { color: #ffffff; }
+        
+        /* Estilo para imágenes de productos */
+        .product-image { 
+            max-width: 80px; 
+            max-height: 60px; 
+            object-fit: cover; /* Mantiene proporciones */
+            border-radius: 4px;
+        }
+        
+        /* Espaciado entre botones de acción */
+        .action-buttons .btn {
+            margin: 2px;
+            font-size: 0.8rem;
+        }
+        
+        /* Efectos de tarjetas */
+        .card {
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); /* Sombra suave */
+            border: 1px solid rgba(255,255,255,0.1); /* Borde sutil */
+        }
+        
+        /* Ancho máximo para caja de búsqueda */
+        .search-box {
+            max-width: 400px;
+        }
+        
+        /* Estilo para filas de tabla al pasar mouse */
+        .table-hover tbody tr:hover {
+            background-color: rgba(255,255,255,0.1); /* Efecto hover sutil */
+        }
     </style>
-  </head>
-  <body>
-
-    <!-- NAV -->
+</head>
+<body>
+    <!-- ========== BARRA DE NAVEGACIÓN ========== -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-      <a class="navbar-brand font-weight-bold" href=".">🏪 MarketZone</a>
-      <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <form class="form-inline ml-auto search-box" onsubmit="return false;">
-          <div class="input-group">
-            <input class="form-control" id="search" type="search" placeholder="Buscar productos..." aria-label="Search">
-            <div class="input-group-append">
-              <button class="btn btn-success" id="btnSearch" type="button">
-                🔍 Buscar
-              </button>
-            </div>
-          </div>
-        </form>
-      </div>
+        <!-- Logo/Marca de la aplicación -->
+        <a class="navbar-brand font-weight-bold" href=".">
+            ProductApp
+        </a>
+        
+        <!-- Formulario de búsqueda -->
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <form class="form-inline ml-auto search-box" onsubmit="return false;">
+                <div class="input-group">
+                    <!-- Campo de búsqueda con placeholder descriptivo -->
+                    <input class="form-control" id="search" type="search" 
+                           placeholder="Buscar por nombre, marca o descripción" 
+                           aria-label="Buscar productos">
+                    <div class="input-group-append">
+                        <!-- Botón de búsqueda con ícono -->
+                        <button class="btn btn-success" id="btnSearch" type="button">
+                            Buscar
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
     </nav>
 
+    <!-- ========== CONTENIDO PRINCIPAL ========== -->
     <div class="container-fluid mt-3">
-      <div class="row">
-        <!-- FORMULARIO -->
-        <div class="col-lg-4 col-md-5 mb-4">
-          <div class="card border-0">
-            <div class="card-header bg-dark text-white">
-              <h5 class="mb-0" id="formTitle">➕ Agregar Nuevo Producto</h5>
+        <div class="row">
+            
+            <!-- ========== COLUMNA IZQUIERDA - FORMULARIO ========== -->
+            <div class="col-lg-4 col-md-5 mb-4">
+                <!-- Tarjeta del formulario -->
+                <div class="card border-0">
+                    <!-- Encabezado de la tarjeta -->
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="mb-0" id="formTitle">
+                            Agregar Nuevo Producto
+                        </h5>
+                    </div>
+                    
+                    <!-- Cuerpo de la tarjeta con el formulario -->
+                    <div class="card-body">
+                        <!-- Formulario principal - novalidate deshabilita validación nativa del navegador -->
+                        <form id="product-form" novalidate>
+                            <!-- Campo oculto para almacenar ID durante edición -->
+                            <input type="hidden" id="productId" value="">
+                            
+                            <!-- ========== CAMPO NOMBRE ========== -->
+                            <div class="form-group">
+                                <label for="name" class="font-weight-bold">
+                                    Nombre del Producto *
+                                </label>
+                                <input id="name" name="nombre" class="form-control" type="text" 
+                                       maxlength="100" placeholder="Ej: Samsung Galaxy A56"
+                                       autocomplete="off" required>
+                                <!-- Barra de estado para validación visual -->
+                                <div class="status-bar" id="bar-nombre">
+                                    <div class="inner" id="bar-nombre-inner"></div>
+                                </div>
+                                <!-- Mensaje de feedback para el usuario -->
+                                <div class="field-msg" id="msg-nombre"></div>
+                            </div>
+
+                            <!-- ========== CAMPO MARCA ========== -->
+                            <div class="form-group">
+                                <label for="marca" class="font-weight-bold">
+                                    Marca *
+                                </label>
+                                <select id="marca" name="marca" class="form-control" required>
+                                    <option value="">Selecciona la Marca</option>
+                                    <option value="MarcaA">Samsung</option>
+                                    <option value="MarcaB">Apple</option>
+                                    <option value="MarcaC">HP</option>
+                                    <option value="MarcaD">Sony</option>
+                                    <option value="MarcaE">Lenovo</option>
+                                </select>
+                                <div class="status-bar" id="bar-marca">
+                                    <div class="inner" id="bar-marca-inner"></div>
+                                </div>
+                                <div class="field-msg" id="msg-marca"></div>
+                            </div>
+
+                            <!-- ========== FILA MODELO Y PRECIO ========== -->
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <!-- Campo Modelo -->
+                                    <div class="form-group">
+                                        <label for="modelo" class="font-weight-bold">
+                                            Modelo *
+                                        </label>
+                                        <input id="modelo" name="modelo" class="form-control" type="text" 
+                                               maxlength="25" placeholder="Ej: SJE990" required>
+                                        <div class="status-bar" id="bar-modelo">
+                                            <div class="inner" id="bar-modelo-inner"></div>
+                                        </div>
+                                        <div class="field-msg" id="msg-modelo"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <!-- Campo Precio -->
+                                    <div class="form-group">
+                                        <label for="precio" class="font-weight-bold">
+                                            Precio *
+                                        </label>
+                                        <input id="precio" name="precio" class="form-control" type="number" 
+                                               step="0.01" min="100" placeholder="100.00" required>
+                                        <div class="status-bar" id="bar-precio">
+                                            <div class="inner" id="bar-precio-inner"></div>
+                                        </div>
+                                        <div class="field-msg" id="msg-precio"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- ========== CAMPO DETALLES ========== -->
+                            <div class="form-group">
+                                <label for="detalles" class="font-weight-bold">
+                                    Detalles (opcional)
+                                </label>
+                                <textarea id="detalles" name="detalles" class="form-control" rows="2" 
+                                          maxlength="250" placeholder="Descripción detallada del producto"></textarea>
+                                <!-- Contador de caracteres en tiempo real -->
+                                <small class="form-text text-muted float-right">
+                                    <span id="detalles-count">0</span>/250 caracteres
+                                </small>
+                                <div class="status-bar" id="bar-detalles">
+                                    <div class="inner" id="bar-detalles-inner"></div>
+                                </div>
+                                <div class="field-msg" id="msg-detalles"></div>
+                            </div>
+
+                            <!-- ========== FILA UNIDADES E IMAGEN ========== -->
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <!-- Campo Unidades -->
+                                    <div class="form-group">
+                                        <label for="unidades" class="font-weight-bold">
+                                            Unidades en Stock *
+                                        </label>
+                                        <input id="unidades" name="unidades" class="form-control" type="number" 
+                                               step="1" min="0" placeholder="0" required>
+                                        <div class="status-bar" id="bar-unidades">
+                                            <div class="inner" id="bar-unidades-inner"></div>
+                                        </div>
+                                        <div class="field-msg" id="msg-unidades"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <!-- Campo Imagen -->
+                                    <div class="form-group">
+                                        <label for="imagen" class="font-weight-bold">
+                                            Imagen (opcional)
+                                        </label>
+                                        <input id="imagen" name="imagen" class="form-control" type="text" 
+                                               placeholder="img/default.png">
+                                        <div class="status-bar" id="bar-imagen">
+                                            <div class="inner" id="bar-imagen-inner"></div>
+                                        </div>
+                                        <div class="field-msg" id="msg-imagen"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- ========== BOTONES DE ACCIÓN ========== -->
+                            <div class="d-flex gap-2">
+                                <!-- Botón principal (Agregar/Actualizar) -->
+                                <button id="btnSubmit" class="btn btn-primary btn-lg flex-fill" type="submit">
+                                    <span id="submitText">Agregar Producto</span>
+                                </button>
+                                <!-- Botón cancelar (solo visible en modo edición) -->
+                                <button id="btnCancel" class="btn btn-secondary" type="button" style="display: none;">
+                                    Cancelar Edición
+                                </button>
+                            </div>
+                            
+                            <!-- ========== MENSAJE GLOBAL ========== -->
+                            <div id="globalMessage" class="mt-3 alert" style="display: none;"></div>
+                        </form>
+                    </div>
+                </div>
             </div>
-            <div class="card-body">
-              <form id="product-form" novalidate>
-                <input type="hidden" id="productId" value="">
+
+            <!-- ========== COLUMNA DERECHA - LISTADO ========== -->
+            <div class="col-lg-8 col-md-7">
                 
-                <div class="form-group">
-                  <label for="name" class="font-weight-bold">📛 Nombre *</label>
-                  <input id="name" name="nombre" class="form-control" type="text" maxlength="100" 
-                         placeholder="Ingrese el nombre del producto" autocomplete="off">
-                  <div class="status-bar" id="bar-nombre">
-                    <div class="inner" id="bar-nombre-inner"></div>
-                  </div>
-                  <div class="field-msg" id="msg-nombre"></div>
-                </div>
-
-                <div class="form-group">
-                  <label for="marca" class="font-weight-bold">🏷️ Marca *</label>
-                  <select id="marca" name="marca" class="form-control">
-                    <option value="">Selecciona la Marca</option>
-                    <option value="MarcaA">Samsung</option>
-                    <option value="MarcaB">Apple</option>
-                    <option value="MarcaC">HP</option>
-                    <option value="MarcaD">Sony</option>
-                  </select>
-                  <div class="status-bar" id="bar-marca">
-                    <div class="inner" id="bar-marca-inner"></div>
-                  </div>
-                  <div class="field-msg" id="msg-marca"></div>
-                </div>
-
-                <div class="row">
-                  <div class="col-md-6">
-                    <div class="form-group">
-                      <label for="modelo" class="font-weight-bold">🔧 Modelo *</label>
-                      <input id="modelo" name="modelo" class="form-control" type="text" maxlength="25" 
-                             placeholder="Modelo del producto">
-                      <div class="status-bar" id="bar-modelo">
-                        <div class="inner" id="bar-modelo-inner"></div>
-                      </div>
-                      <div class="field-msg" id="msg-modelo"></div>
+                <!-- ========== SECCIÓN RESULTADOS DE BÚSQUEDA ========== -->
+                <div class="card mb-3" id="product-result" style="display: none;">
+                    <div class="card-header bg-info text-white">
+                        <h6 class="mb-0">Resultados de Búsqueda</h6>
                     </div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="form-group">
-                      <label for="precio" class="font-weight-bold">💰 Precio *</label>
-                      <input id="precio" name="precio" class="form-control" type="number" 
-                             step="0.01" min="100" placeholder="100.00">
-                      <div class="status-bar" id="bar-precio">
-                        <div class="inner" id="bar-precio-inner"></div>
-                      </div>
-                      <div class="field-msg" id="msg-precio"></div>
+                    <div class="card-body">
+                        <!-- Contenedor dinámico para resultados de búsqueda -->
+                        <div id="searchResults" class="row"></div>
                     </div>
-                  </div>
                 </div>
 
-                <div class="form-group">
-                  <label for="detalles" class="font-weight-bold">📝 Detalles (opcional)</label>
-                  <textarea id="detalles" name="detalles" class="form-control" rows="2" 
-                            maxlength="250" placeholder="Descripción del producto..."></textarea>
-                  <small class="form-text text-muted float-right">
-                    <span id="detalles-count">0</span>/250 caracteres
-                  </small>
-                  <div class="status-bar" id="bar-detalles">
-                    <div class="inner" id="bar-detalles-inner"></div>
-                  </div>
-                  <div class="field-msg" id="msg-detalles"></div>
-                </div>
-
-                <div class="row">
-                  <div class="col-md-6">
-                    <div class="form-group">
-                      <label for="unidades" class="font-weight-bold">📦 Unidades *</label>
-                      <input id="unidades" name="unidades" class="form-control" type="number" 
-                             step="1" min="0" placeholder="0">
-                      <div class="status-bar" id="bar-unidades">
-                        <div class="inner" id="bar-unidades-inner"></div>
-                      </div>
-                      <div class="field-msg" id="msg-unidades"></div>
+                <!-- ========== SECCIÓN LISTA PRINCIPAL ========== -->
+                <div class="card">
+                    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"> Lista de Productos</h5>
+                        <!-- Contador dinámico de productos -->
+                        <span class="badge badge-light" id="productCount">Cargando...</span>
                     </div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="form-group">
-                      <label for="imagen" class="font-weight-bold">🖼️ Imagen (opcional)</label>
-                      <input id="imagen" name="imagen" class="form-control" type="text" 
-                             placeholder="images/producto.jpg">
-                      <div class="status-bar" id="bar-imagen">
-                        <div class="inner" id="bar-imagen-inner"></div>
-                      </div>
-                      <div class="field-msg" id="msg-imagen"></div>
+                    <div class="card-body p-0">
+                        <!-- Tabla responsive para lista de productos -->
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped mb-0">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th width="80">ID</th>
+                                        <th>Información del Producto</th>
+                                        <th>Descripción</th>
+                                        <th width="120" class="text-center">Acción</th>
+                                    </tr>
+                                </thead>
+                                <!-- Cuerpo de tabla - se llena dinámicamente -->
+                                <tbody id="products">
+                                    <tr>
+                                        <td colspan="4" class="text-center text-muted py-4">
+                                            Cargando productos
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                  </div>
+                    <div class="card-footer text-muted text-center">
+                        <small>Produtos Disponibles en Tienda</small>
+                    </div>
                 </div>
-
-                <div class="d-flex gap-2">
-                  <button id="btnSubmit" class="btn btn-primary btn-lg flex-fill" type="submit">
-                    <span id="submitText">Agregar Producto</span>
-                  </button>
-                  <button id="btnCancel" class="btn btn-secondary" type="button" style="display: none;">
-                    Cancelar
-                  </button>
-                </div>
-                
-                <div id="globalMessage" class="mt-3 alert" style="display: none;"></div>
-              </form>
             </div>
-          </div>
         </div>
-
-        <!-- LISTADO -->
-        <div class="col-lg-8 col-md-7">
-          <!-- Resultados de Búsqueda -->
-          <div class="card mb-3" id="product-result" style="display: none;">
-            <div class="card-header bg-info text-white">
-              <h6 class="mb-0">🔍 Resultados de Búsqueda</h6>
-            </div>
-            <div class="card-body">
-              <div id="searchResults" class="row"></div>
-            </div>
-          </div>
-
-          <!-- Lista Principal -->
-          <div class="card">
-            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-              <h5 class="mb-0">📦 Lista de Productos</h5>
-              <span class="badge badge-light" id="productCount">0 productos</span>
-            </div>
-            <div class="card-body p-0">
-              <div class="table-responsive">
-                <table class="table table-hover table-striped mb-0">
-                  <thead class="thead-light">
-                    <tr>
-                      <th width="80">ID</th>
-                      <th>Producto</th>
-                      <th>Detalles</th>
-                      <th width="120" class="text-center">Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody id="products"></tbody>
-                </table>
-              </div>
-            </div>
-            <div class="card-footer text-muted text-center">
-              <small>Total de productos activos en el sistema</small>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
 
-    <!-- jQuery -->
+    <!-- ========== SCRIPTS EXTERNOS ========== -->
+    
+    <!-- jQuery 3.6.0 - Biblioteca para manipulación DOM y AJAX -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <!-- Bootstrap JS -->
+    
+    <!-- Bootstrap JS 4.6.0 - Componentes interactivos -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
 
+    <!-- Script principal de la aplicación -->
     <script src="app.js"></script>
-  </body>
+</body>
 </html>
