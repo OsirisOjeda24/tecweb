@@ -1,23 +1,20 @@
 <?php
 
 // Incluir la clase padre DataBase usando require_once
-// Asegura que la clase se incluya solo una vez
+// Esto asegura que la clase se incluya solo una vez
 require_once 'DataBase.php';
 
-// La clase Products extiende DataBase y proporciona funcionalidades para 
-// la gestión de productos en la base de datos
-
+// CLASE Products
 class Products extends DataBase
 {
-    // Arreglo que almacena los datos de respuesta
-
+    //Arreglo que almacena los datos de respuesta
     private $data = [];
 
-    // CONSTRUCTOR DE LA CLASE Products
-    // Inicializa el atributo data y llama al constructor de la clase padre 
-    // para establecer la conexión a la base de datos
-
-    public function __construct($db = 'marketzone', $user = 'root', $pass = 'Oross2414')
+    //CONSTRUCTOR DE LA CLASE Products
+    //Inicializa el atributo data y llama al constructor de la clase padre
+    //para establecer la conexión a la base de datos
+     
+    public function __construct($db, $user = 'root', $pass = 'Oross2414')
     {
         // Inicializar el atributo data como un arreglo vacío
         $this->data = [];
@@ -27,8 +24,7 @@ class Products extends DataBase
         parent::__construct($db, $user, $pass);
     }
 
-    // MÉTODO add que agrega un nuevo producto
-    
+    //MÉTODO add para gregar un nuevo producto
     public function add($product)
     {
         try {
@@ -41,7 +37,7 @@ class Products extends DataBase
             $unidades = intval($product->unidades); // Convertir a número entero
             $imagen = !empty($product->imagen) ? 
                      $this->conexion->real_escape_string($product->imagen) : 
-                     'images/default-product.png'; // Imagen por defecto si no se proporciona
+                     'img/default.png'; // Imagen por defecto si no se proporciona
             
             // Construir la consulta SQL para insertar el producto
             $query = "INSERT INTO productos (nombre, marca, modelo, precio, detalles, unidades, imagen, eliminado) 
@@ -69,7 +65,7 @@ class Products extends DataBase
         }
     }
 
-    // MÉTODO delete que elimina un producto 
+    //MÉTODO delete para eliminar un producto 
     public function delete($id)
     {
         try {
@@ -99,7 +95,7 @@ class Products extends DataBase
         }
     }
 
-    // MÉTODO edit para actualizar un producto existente
+    //MÉTODO edit para Atualizar un producto existente
     public function edit($product)
     {
         try {
@@ -141,11 +137,12 @@ class Products extends DataBase
         }
     }
 
-    // MÉTODO list para obtener la lista de todos los productos
+    // MÉTODO list para obtener lista de todos los productos
+
     public function list()
     {
         try {
-            // Consulta para obtener todos los productos no eliminados, ordenados por ID 
+            // Consulta para obtener todos los productos no eliminados, ordenados por ID
             $query = "SELECT * FROM productos WHERE eliminado = 0 ORDER BY id ASC";
             $result = $this->conexion->query($query);
             
@@ -178,7 +175,8 @@ class Products extends DataBase
         }
     }
 
-    // MÉTODO search para buscar productos por térmio
+    //MÉTODO search para buscar productos por término
+     
     public function search($term)
     {
         try {
@@ -224,6 +222,7 @@ class Products extends DataBase
     }
 
     // MÉTODO single para obtener un solo producto por ID
+    
     public function single($id)
     {
         try {
@@ -304,7 +303,7 @@ class Products extends DataBase
         }
     }
 
-    // MÉTODO getData para convertir datos a JSON
+    //MÉTODO getData para cnvertir datos a JSON
     public function getData()
     {
         // Convertir el arreglo $data a formato JSON
@@ -313,4 +312,4 @@ class Products extends DataBase
         return json_encode($this->data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
     }
 }
-?>
+?> 

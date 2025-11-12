@@ -1,6 +1,7 @@
 $(function() {
+    // ========== CONFIGURACIÓN Y CONSTANTES ==========
     const DEFAULT_IMAGE = 'images/default-product.png'; // Imagen por defecto para productos
-    let nameTimer = null; // Timer para validación de nombre
+    let nameTimer = null; // Timer para debounce de validación de nombre
     let isEditing = false; // Estado para controlar modo edición
 
     // Configuración de endpoints del backend
@@ -16,7 +17,7 @@ $(function() {
         }
     };
 
-    // REFERENCIAS A ELEMENTOS DOM 
+    // ========== REFERENCIAS A ELEMENTOS DOM ==========
     const elements = {
         form: $('#product-form'), // Formulario principal
         
@@ -41,7 +42,7 @@ $(function() {
         }
     };
 
-    // SISTEMA DE VALIDACIÓN 
+    // ========== SISTEMA DE VALIDACIÓN ==========
     const validators = {
         // Validador para campo nombre
         nombre: (val) => {
@@ -99,19 +100,19 @@ $(function() {
         }
     };
 
-    // UTILIDADES DE INTERFAZ DE USUARIO
+    // ========== UTILIDADES DE INTERFAZ DE USUARIO ==========
     const ui = {
-        // Marcar campo como válido (blanco)
+        // Marcar campo como válido (verde)
         setValid: (field) => {
-            $(`#bar-${field}`).show().find('.inner').css({width:'100%', background:'#ffffffff'});
+            $(`#bar-${field}`).show().find('.inner').css({width:'100%', background:'#28a745'});
             $(`#msg-${field}`).removeClass('field-err').addClass('field-ok')
-                .text(validators[field](elements.fields[field].val()).msg);
+                .text('' + validators[field](elements.fields[field].val()).msg);
         },
         
-        // Marcar campo como inválido (blanco)
+        // Marcar campo como inválido (rojo)
         setInvalid: (field, msg) => {
-            $(`#bar-${field}`).show().find('.inner').css({width:'100%', background:'#ffffffff'});
-            $(`#msg-${field}`).removeClass('field-ok').addClass('field-err').text(msg);
+            $(`#bar-${field}`).show().find('.inner').css({width:'100%', background:'#dc3545'});
+            $(`#msg-${field}`).removeClass('field-ok').addClass('field-err').text(' ' + msg);
         },
         
         // Mostrar estado de carga (azul)
@@ -134,14 +135,14 @@ $(function() {
         // Cambiar entre modo agregar y editar
         setEditMode: (enabled) => {
             isEditing = enabled;
-            elements.displays.formTitle.text(enabled ? 'Editar Producto' : 'Agregar Nuevo Producto');
-            elements.displays.submitText.text(enabled ? 'Actualizar Producto' : 'Agregar Producto');
+            elements.displays.formTitle.text(enabled ? 'Editar Producto' : ' Agregar Producto');
+            elements.displays.submitText.text(enabled ? 'Actualizar' : 'Agregar');
             elements.buttons.cancel.toggle(enabled); // Mostrar/ocultar botón cancelar
             elements.buttons.submit.toggleClass('btn-warning', enabled).toggleClass('btn-primary', !enabled);
         }
     };
 
-    // MANEJADORES DE EVENTOS
+    // ========== MANEJADORES DE EVENTOS ==========
 
     // Contador de caracteres en tiempo real para detalles
     elements.fields.detalles.on('input', function() {
@@ -184,7 +185,7 @@ $(function() {
         }
     });
 
-    // MANEJO DEL FORMULARIO
+    // ========== MANEJO DEL FORMULARIO ==========
     elements.form.on('submit', function(e) {
         e.preventDefault(); // Prevenir envío tradicional
         elements.displays.globalMessage.hide();
@@ -252,7 +253,7 @@ $(function() {
         .fail(() => ui.showMessage('Error verificación nombre', 'error'));
     });
 
-    // FUNCIONALIDADES DE LA APLICACIÓN 
+    // ========== FUNCIONALIDADES DE LA APLICACIÓN ==========
 
     // Cancelar edición
     elements.buttons.cancel.on('click', resetForm);
@@ -264,7 +265,6 @@ $(function() {
     });
 
     // Ejecutar búsqueda de productos
-  
     function performSearch() {
         const query = elements.fields.search.val().trim();
         if (!query) {
@@ -315,8 +315,7 @@ $(function() {
         elements.displays.productResult.show();
     }
 
-    // Cargar lista de productos desde el servidor
-
+    //Cargar lista de productos desde el servidor
     function loadProducts() {
         $.get(config.endpoints.list)
         .done(response => {
@@ -363,12 +362,12 @@ $(function() {
                     <div class="small">
                         <div><strong>Precio:</strong> $${parseFloat(p.precio).toFixed(2)}</div>
                         <div><strong>Unidades:</strong> ${p.unidades}</div>
-                        ${p.detalles ? `<div><strong>Descripcion:</strong> ${p.detalles}</div>` : ''}
+                        ${p.detalles ? `<div><strong>Detalles:</strong> ${p.detalles}</div>` : ''}
                     </div>
                 </td>
                 <td class="text-center">
-                    <button class="btn btn-sm btn-outline-primary edit-product" data-id="${p.id}">Editar</button>
-                    <button class="btn btn-sm btn-outline-danger delete-product" data-id="${p.id}">Eliminar</button>
+                    <button class="btn btn-sm btn-outline-primary edit-product" data-id="${p.id}"></button>
+                    <button class="btn btn-sm btn-outline-danger delete-product" data-id="${p.id}"></button>
                 </td>
             </tr>
         `).join('');
@@ -376,7 +375,7 @@ $(function() {
         elements.displays.products.html(html);
     }
 
-    // EVENTOS DELEGADOS PARA ELEMENTOS DINÁMICOS 
+    // ========== EVENTOS DELEGADOS PARA ELEMENTOS DINÁMICOS ==========
     $(document)
         // Editar producto
         .on('click', '.edit-product', function() {
@@ -412,9 +411,7 @@ $(function() {
             .fail(() => ui.showMessage('Error eliminando', 'error'));
         });
 
-    /**
-     * Resetear formulario a estado inicial
-     */
+    //Resetear formulario a estado inicial
     function resetForm() {
         elements.form[0].reset();
         elements.fields.productId.val('');
@@ -424,7 +421,7 @@ $(function() {
         elements.displays.globalMessage.hide();
     }
 
-    // INICIALIZACIÓN DE LA APLICACIÓN 
+    // ========== INICIALIZACIÓN DE LA APLICACIÓN ==========
     loadProducts(); // Cargar productos al iniciar
     resetForm();    // Configurar formulario inicial
-});
+})

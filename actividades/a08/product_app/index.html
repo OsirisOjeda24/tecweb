@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="https://bootswatch.com/4/superhero/bootstrap.min.css">
     
     <style>
+        /* ESTILOS PERSONALIZADOS */
+        
         /* Barras de estado para validación visual */
         .status-bar { 
             height: 6px; 
@@ -35,10 +37,10 @@
         }
         
         /* Estado válido */
-        .field-ok { color: #ffffff; }
+        .field-ok { color: #fdfffe; }
         
         /* Estado inválido */
-        .field-err { color: #ffffff; }
+        .field-err { color: #faf8f8; }
         
         /* Estilo para imágenes de productos */
         .product-image { 
@@ -85,7 +87,7 @@
                 <div class="input-group">
                     <!-- Campo de búsqueda con placeholder descriptivo -->
                     <input class="form-control" id="search" type="search" 
-                           placeholder="Buscar por nombre, marca o descripción" 
+                           placeholder="Buscar por nombre, marca o descripción..." 
                            aria-label="Buscar productos">
                     <div class="input-group-append">
                         <!-- Botón de búsqueda con ícono -->
@@ -164,7 +166,7 @@
                                             Modelo *
                                         </label>
                                         <input id="modelo" name="modelo" class="form-control" type="text" 
-                                               maxlength="25" placeholder="Ej: SJE990" required>
+                                               maxlength="25" placeholder="Ej: JHY567" required>
                                         <div class="status-bar" id="bar-modelo">
                                             <div class="inner" id="bar-modelo-inner"></div>
                                         </div>
@@ -193,10 +195,9 @@
                                     Detalles (opcional)
                                 </label>
                                 <textarea id="detalles" name="detalles" class="form-control" rows="2" 
-                                          maxlength="250" placeholder="Descripción detallada del producto"></textarea>
+                                          maxlength="250" placeholder="Descripción del producto"></textarea>
                                 <!-- Contador de caracteres en tiempo real -->
                                 <small class="form-text text-muted float-right">
-                                    <span id="detalles-count">0</span>/250 caracteres
                                 </small>
                                 <div class="status-bar" id="bar-detalles">
                                     <div class="inner" id="bar-detalles-inner"></div>
@@ -272,9 +273,9 @@
                 <!-- ========== SECCIÓN LISTA PRINCIPAL ========== -->
                 <div class="card">
                     <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0"> Lista de Productos</h5>
+                        <h5 class="mb-0">Lista de Productos</h5>
                         <!-- Contador dinámico de productos -->
-                        <span class="badge badge-light" id="productCount">Cargando...</span>
+                        <span class="badge badge-light" id="productCount">Cargando</span>
                     </div>
                     <div class="card-body p-0">
                         <!-- Tabla responsive para lista de productos -->
@@ -284,8 +285,8 @@
                                     <tr>
                                         <th width="80">ID</th>
                                         <th>Información del Producto</th>
-                                        <th>Descripción</th>
-                                        <th width="120" class="text-center">Acción</th>
+                                        <th>Detalles</th>
+                                        <th width="120" class="text-center">Acciones</th>
                                     </tr>
                                 </thead>
                                 <!-- Cuerpo de tabla - se llena dinámicamente -->
@@ -300,7 +301,7 @@
                         </div>
                     </div>
                     <div class="card-footer text-muted text-center">
-                        <small>Produtos Disponibles en Tienda</small>
+                        <small>Productos Disponibles en Tienda</small>
                     </div>
                 </div>
             </div>
