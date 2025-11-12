@@ -69,14 +69,7 @@ class Products extends DataBase
         }
     }
 
-    /**
-     * MÉTODO delete - Eliminar un producto (eliminación lógica)
-     * 
-     * Realiza una eliminación lógica estableciendo el campo 'eliminado' a 1
-     * 
-     * @param string $id ID del producto a eliminar
-     * @return void Los resultados se almacenan en el atributo $data
-     */
+    // MÉTODO delete que elimina un producto 
     public function delete($id)
     {
         try {
@@ -106,14 +99,7 @@ class Products extends DataBase
         }
     }
 
-    /**
-     * MÉTODO edit - Actualizar un producto existente
-     * 
-     * Modifica los datos de un producto existente en la base de datos
-     * 
-     * @param object $product Objeto con los datos actualizados del producto
-     * @return void Los resultados se almacenan en el atributo $data
-     */
+    // MÉTODO edit para actualizar un producto existente
     public function edit($product)
     {
         try {
@@ -155,18 +141,12 @@ class Products extends DataBase
         }
     }
 
-    /**
-     * MÉTODO list - Obtener lista de todos los productos
-     * 
-     * Recupera todos los productos activos (no eliminados) de la base de datos
-     * 
-     * @return void Los productos se almacenan en el atributo $data
-     */
+    // MÉTODO list para obtener la lista de todos los productos
     public function list()
     {
         try {
-            // Consulta para obtener todos los productos no eliminados, ordenados por ID descendente
-            $query = "SELECT * FROM productos WHERE eliminado = 0 ORDER BY id DESC";
+            // Consulta para obtener todos los productos no eliminados, ordenados por ID 
+            $query = "SELECT * FROM productos WHERE eliminado = 0 ORDER BY id ASC";
             $result = $this->conexion->query($query);
             
             if ($result) {
@@ -198,14 +178,7 @@ class Products extends DataBase
         }
     }
 
-    /**
-     * MÉTODO search - Buscar productos por término
-     * 
-     * Busca productos que coincidan con el término en nombre, marca o detalles
-     * 
-     * @param string $term Término de búsqueda
-     * @return void Los resultados se almacenan en el atributo $data
-     */
+    // MÉTODO search para buscar productos por térmio
     public function search($term)
     {
         try {
@@ -250,14 +223,7 @@ class Products extends DataBase
         }
     }
 
-    /**
-     * MÉTODO single - Obtener un solo producto por ID
-     * 
-     * Recupera un producto específico usando su ID
-     * 
-     * @param string $id ID del producto a buscar
-     * @return void El producto encontrado se almacena en el atributo $data
-     */
+    // MÉTODO single para obtener un solo producto por ID
     public function single($id)
     {
         try {
@@ -296,15 +262,7 @@ class Products extends DataBase
         }
     }
 
-    /**
-     * MÉTODO singleByName - Buscar producto por nombre
-     * 
-     * Verifica si existe un producto con un nombre específico
-     * Se usa principalmente para validar nombres duplicados
-     * 
-     * @param string $name Nombre del producto a verificar
-     * @return void Los resultados se almacenan en el atributo $data
-     */
+    // MÉTODO singleByName para buscar producto por nombre
     public function singleByName($name)
     {
         try {
@@ -346,13 +304,7 @@ class Products extends DataBase
         }
     }
 
-    /**
-     * MÉTODO getData - Convertir datos a JSON
-     * 
-     * Convierte el arreglo de datos a formato JSON para ser enviado al cliente
-     * 
-     * @return string Representación JSON de los datos almacenados
-     */
+    // MÉTODO getData para convertir datos a JSON
     public function getData()
     {
         // Convertir el arreglo $data a formato JSON
@@ -361,5 +313,4 @@ class Products extends DataBase
         return json_encode($this->data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
     }
 }
-
 ?>
