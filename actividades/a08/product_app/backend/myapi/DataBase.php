@@ -5,6 +5,9 @@ abstract class DataBase
     // @var mysqli Conexión protegida a la base de datos
     protected $conexion;
 
+    // @param string $db Nombre de la base de datos
+    // @param string $user Usuario de la base de datos  
+    // @param string $pass Contraseña de la base de datos
     public function __construct($db = 'marketzone', $user = 'root', $pass = 'Oross2414')
     {
         // Inicializar la conexión a la base de datos
@@ -12,12 +15,14 @@ abstract class DataBase
         
         // Verificar si hubo error en la conexión
         if ($this->conexion->connect_error) {
+            error_log('Error de conexión a BD: ' . $this->conexion->connect_error);
             die('Error de conexión (' . $this->conexion->connect_errno . ') '
                 . $this->conexion->connect_error);
         }
         
         // Establecer el charset
         $this->conexion->set_charset('utf8');
+        error_log('Conexión a BD exitosa: ' . $db);
     }
 }
 ?>
