@@ -3,13 +3,14 @@ namespace TECWEB\MYAPI;
 
 abstract class DataBase {
     protected $conexion;
+    protected $data = array();
 
-    public function __construct($db, $user, $pass) {
+    public function __construct($db, $root, $pass) {
         $this->conexion = @mysqli_connect(
             'localhost',
-            $user,
-            $pass,
-            $db
+            'root',
+            'Oross2414',
+            'marketzone'
         );
     
         /**
@@ -21,6 +22,10 @@ abstract class DataBase {
         /*else {
             echo 'Base de datos encontrada';
         }*/
+    }
+
+    public function getData() {
+        return json_encode($this->data, JSON_PRETTY_PRINT);
     }
 }
 ?>
