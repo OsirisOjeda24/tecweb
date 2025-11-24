@@ -4,7 +4,7 @@ namespace TECWEB\MYAPI\Read;
 use TECWEB\MYAPI\DataBase;
 
 class Read extends DataBase {
-    public function __construct($db = 'marketzone', $user = 'root', $pass = 'Oross2414') {
+    public function __construct($db, $user = 'root', $pass = 'Oross2414') {
         parent::__construct($db, $user, $pass);
     }
 

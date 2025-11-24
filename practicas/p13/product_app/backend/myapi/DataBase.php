@@ -5,23 +5,17 @@ abstract class DataBase {
     protected $conexion;
     protected $data = array();
 
-    public function __construct($db, $root, $pass) {
+    public function __construct($db, $user = 'root', $pass = 'Oross2414') {
         $this->conexion = @mysqli_connect(
             'localhost',
-            'root',
-            'Oross2414',
-            'marketzone'
+            $user,
+            $pass,
+            $db
         );
     
-        /**
-         * NOTA: si la conexión falló $conexion contendrá false
-         **/
         if(!$this->conexion) {
-            die('¡Base de datos NO conextada!');
+            die('¡Base de datos NO conectada!');
         }
-        /*else {
-            echo 'Base de datos encontrada';
-        }*/
     }
 
     public function getData() {

@@ -4,20 +4,20 @@ namespace TECWEB\MYAPI\Update;
 use TECWEB\MYAPI\DataBase;
 
 class Update extends DataBase {
-    public function __construct($db = 'marketzone', $user = 'root', $pass = 'Oross2414') {
+    public function __construct($db, $user = 'root', $pass = 'Oross2414') {
         parent::__construct($db, $user, $pass);
     }
 
-    public function edit($object) {
+    public function edit($jsonOBJ) {
         $this->data = array(
             'status'  => 'error',
             'message' => 'La consulta falló'
         );
 
-        if(isset($object->id)) {
-            $sql =  "UPDATE productos SET nombre='{$object->nombre}', marca='{$object->marca}',";
-            $sql .= "modelo='{$object->modelo}', precio={$object->precio}, detalles='{$object->detalles}',"; 
-            $sql .= "unidades={$object->unidades}, imagen='{$object->imagen}' WHERE id={$object->id}";
+        if(isset($jsonOBJ->id)) {
+            $sql =  "UPDATE productos SET nombre='{$jsonOBJ->nombre}', marca='{$jsonOBJ->marca}',";
+            $sql .= "modelo='{$jsonOBJ->modelo}', precio={$jsonOBJ->precio}, detalles='{$jsonOBJ->detalles}',"; 
+            $sql .= "unidades={$jsonOBJ->unidades}, imagen='{$jsonOBJ->imagen}' WHERE id={$jsonOBJ->id}";
             
             $this->conexion->set_charset("utf8");
             if ($this->conexion->query($sql)) {

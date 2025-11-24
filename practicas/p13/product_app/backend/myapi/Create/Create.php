@@ -4,23 +4,23 @@ namespace TECWEB\MYAPI\Create;
 use TECWEB\MYAPI\DataBase;
 
 class Create extends DataBase {
-    public function __construct($db = 'marketzone', $user = 'root', $pass = 'Oross2414') {
+    public function __construct($db, $user = 'root', $pass = 'Oross2414') {
         parent::__construct($db, $user, $pass);
     }
 
-    public function add($object) {
+    public function add($jsonOBJ) {
         $this->data = array(
             'status'  => 'error',
             'message' => 'Ya existe un producto con ese nombre'
         );
-
-        if(isset($object->nombre)) {
-            $sql = "SELECT * FROM productos WHERE nombre = '{$object->nombre}' AND eliminado = 0";
+        
+        if(isset($jsonOBJ->nombre)) {
+            $sql = "SELECT * FROM productos WHERE nombre = '{$jsonOBJ->nombre}' AND eliminado = 0";
             $result = $this->conexion->query($sql);
             
             if ($result->num_rows == 0) {
                 $this->conexion->set_charset("utf8");
-                $sql = "INSERT INTO productos VALUES (null, '{$object->nombre}', '{$object->marca}', '{$object->modelo}', {$object->precio}, '{$object->detalles}', {$object->unidades}, '{$object->imagen}', 0)";
+                $sql = "INSERT INTO productos VALUES (null, '{$jsonOBJ->nombre}', '{$jsonOBJ->marca}', '{$jsonOBJ->modelo}', {$jsonOBJ->precio}, '{$jsonOBJ->detalles}', {$jsonOBJ->unidades}, '{$jsonOBJ->imagen}', 0)";
                 
                 if($this->conexion->query($sql)){
                     $this->data['status'] = "success";
