@@ -6,15 +6,15 @@ use Slim\Factory\AppFactory;
 require 'vendor/autoload.php';
 
 $app = AppFactory::create();
-$app->setBasepath("http://localhost/tecweb/practicas/p14/slim_v4");
+$app->setBasepath("/tecweb/practicas/p14");
 
 $app->get('/', function ( $request, $response, $args ) {
-    $response->write("Hola Mundo Slim!!!");
+    $response->getBody()->write("Hola Mundo Slim!!!");
     return $response;
 });
 
 $app->get("/hola[/{nombre}]", function( $request, $response, $args ){
-    $response->write("Hola, " . $args["nombre"]);
+    $response->getBody()->write("Hola, " . $args["nombre"]);
     return $response;
 });
 
@@ -23,7 +23,7 @@ $app->post("/pruebapost", function( $request, $response, $args ){
     $val1 = $reqPost["val1"];
     $val2 = $reqPost["val2"];
 
-    $response->write("Valores: " . $val1 ." ".$val2 );
+    $response->getBody()->write("Valores: " . $val1 ." ".$val2 );
     return $response;
 });
 
@@ -33,7 +33,7 @@ $app->get("/testjson", function( $request, $response, $args ){
     $data[1]["nombre"]="Eduardo";
     $data[1]["apellidos"]="Perez Andrade";
 
-    $response->write(json_encode($data, JSON_PRETTY_PRINT));
+    $response->getBody()->write(json_encode($data, JSON_PRETTY_PRINT));
     return $response;
 });
 
