@@ -1,27 +1,21 @@
 <?php
-/**
- * Slim Framework (http://slimframework.com)
- *
- * @link      https://github.com/slimphp/Slim
- * @copyright Copyright (c) 2011-2015 Josh Lockhart
- * @license   https://github.com/slimphp/Slim/blob/3.x/LICENSE.md (MIT License)
- */
-namespace Slim\Interfaces;
 
 /**
- * Resolves a callable.
+ * Slim Framework (https://slimframework.com)
  *
- * @package Slim
- * @since 3.0.0
+ * @license https://github.com/slimphp/Slim/blob/4.x/LICENSE.md (MIT License)
  */
+
+declare(strict_types=1);
+
+namespace Slim\Interfaces;
+
 interface CallableResolverInterface
 {
     /**
-     * Invoke the resolved callable.
+     * Resolve $toResolve into a callable
      *
-     * @param mixed $toResolve
-     *
-     * @return callable
+     * @param string|callable $toResolve
      */
-    public function resolve($toResolve);
+    public function resolve($toResolve): callable;
 }

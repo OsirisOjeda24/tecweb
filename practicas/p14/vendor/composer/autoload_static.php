@@ -4,62 +4,80 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit1ff696401163d3fbe8dab8da572d3ebf
+class ComposerStaticInit8e05a6c65207012fe0f63de3532301ad
 {
     public static $files = array (
         '253c157292f75eb38082b5acb06f3f01' => __DIR__ . '/..' . '/nikic/fast-route/src/functions.php',
+        '7b11c4dc42b3b3023073cb14e519683c' => __DIR__ . '/..' . '/ralouphie/getallheaders/src/getallheaders.php',
     );
 
     public static $prefixLengthsPsr4 = array (
         'S' =>
         array (
+            'Slim\\Psr7\\' => 10,
             'Slim\\' => 5,
         ),
         'P' =>
         array (
+            'Psr\\Log\\' => 8,
+            'Psr\\Http\\Server\\' => 16,
             'Psr\\Http\\Message\\' => 17,
             'Psr\\Container\\' => 14,
         ),
-        'I' =>
+        'N' =>
         array (
-            'Interop\\Container\\' => 18,
+            'Nyholm\\Psr7\\' => 12,
+            'Nyholm\\Psr7Server\\' => 18,
         ),
         'F' =>
         array (
+            'Fig\\Http\\Message\\' => 17,
             'FastRoute\\' => 10,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
+        'Slim\\Psr7\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/slim/psr7/src',
+        ),
         'Slim\\' =>
         array (
             0 => __DIR__ . '/..' . '/slim/slim/Slim',
         ),
+        'Psr\\Log\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/psr/log/src',
+        ),
+        'Psr\\Http\\Server\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/psr/http-server-middleware/src',
+            1 => __DIR__ . '/..' . '/psr/http-server-handler/src',
+        ),
         'Psr\\Http\\Message\\' =>
         array (
-            0 => __DIR__ . '/..' . '/psr/http-message/src',
+            0 => __DIR__ . '/..' . '/psr/http-factory/src',
+            1 => __DIR__ . '/..' . '/psr/http-message/src',
         ),
         'Psr\\Container\\' =>
         array (
             0 => __DIR__ . '/..' . '/psr/container/src',
         ),
-        'Interop\\Container\\' =>
+        'Nyholm\\Psr7\\' =>
         array (
-            0 => __DIR__ . '/..' . '/container-interop/container-interop/src/Interop/Container',
+            0 => __DIR__ . '/..' . '/nyholm/psr7/src',
+        ),
+        'Nyholm\\Psr7Server\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/nyholm/psr7-server/src',
+        ),
+        'Fig\\Http\\Message\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/fig/http-message-util/src',
         ),
         'FastRoute\\' =>
         array (
             0 => __DIR__ . '/..' . '/nikic/fast-route/src',
-        ),
-    );
-
-    public static $prefixesPsr0 = array (
-        'P' =>
-        array (
-            'Pimple' =>
-            array (
-                0 => __DIR__ . '/..' . '/pimple/pimple/src',
-            ),
         ),
     );
 
@@ -70,10 +88,9 @@ class ComposerStaticInit1ff696401163d3fbe8dab8da572d3ebf
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit1ff696401163d3fbe8dab8da572d3ebf::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit1ff696401163d3fbe8dab8da572d3ebf::$prefixDirsPsr4;
-            $loader->prefixesPsr0 = ComposerStaticInit1ff696401163d3fbe8dab8da572d3ebf::$prefixesPsr0;
-            $loader->classMap = ComposerStaticInit1ff696401163d3fbe8dab8da572d3ebf::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit8e05a6c65207012fe0f63de3532301ad::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit8e05a6c65207012fe0f63de3532301ad::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit8e05a6c65207012fe0f63de3532301ad::$classMap;
 
         }, null, ClassLoader::class);
     }

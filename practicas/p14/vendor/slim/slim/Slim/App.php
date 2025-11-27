@@ -1,283 +1,178 @@
 <?php
+
 /**
- * Slim Framework (http://slimframework.com)
+ * Slim Framework (https://slimframework.com)
  *
- * @link      https://github.com/slimphp/Slim
- * @copyright Copyright (c) 2011-2015 Josh Lockhart
- * @license   https://github.com/slimphp/Slim/blob/3.x/LICENSE.md (MIT License)
+ * @license https://github.com/slimphp/Slim/blob/4.x/LICENSE.md (MIT License)
  */
+
+declare(strict_types=1);
+
 namespace Slim;
 
-use Exception;
-use Closure;
-use InvalidArgumentException;
-use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ServerRequestInterface;
+use Psr\Container\ContainerInterface;
+use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
-use Interop\Container\ContainerInterface;
-use FastRoute\Dispatcher;
-use Slim\Exception\SlimException;
-use Slim\Exception\MethodNotAllowedException;
-use Slim\Exception\NotFoundException;
-use Slim\Http\Uri;
-use Slim\Http\Headers;
-use Slim\Http\Body;
-use Slim\Http\Request;
-use Slim\Interfaces\Http\EnvironmentInterface;
-use Slim\Interfaces\RouteGroupInterface;
-use Slim\Interfaces\RouteInterface;
-use Slim\Interfaces\RouterInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+use Psr\Log\LoggerInterface;
+use Slim\Factory\ServerRequestCreatorFactory;
+use Slim\Interfaces\CallableResolverInterface;
+use Slim\Interfaces\MiddlewareDispatcherInterface;
+use Slim\Interfaces\RouteCollectorInterface;
+use Slim\Interfaces\RouteResolverInterface;
+use Slim\Middleware\BodyParsingMiddleware;
+use Slim\Middleware\ErrorMiddleware;
+use Slim\Middleware\RoutingMiddleware;
+use Slim\Routing\RouteCollectorProxy;
+use Slim\Routing\RouteResolver;
+use Slim\Routing\RouteRunner;
+
+use function strtoupper;
 
 /**
- * App
- *
- * This is the primary class with which you instantiate,
- * configure, and run a Slim Framework application.
- * The \Slim\App class also accepts Slim Framework middleware.
- *
- * @property-read array $settings App settings
- * @property-read EnvironmentInterface $environment
- * @property-read RequestInterface $request
- * @property-read ResponseInterface $response
- * @property-read RouterInterface $router
- * @property-read callable $errorHandler
- * @property-read callable $notFoundHandler function($request, $response)
- * @property-read callable $notAllowedHandler function($request, $response, $allowedHttpMethods)
+ * @api
+ * @template TContainerInterface of (ContainerInterface|null)
+ * @template-extends RouteCollectorProxy<TContainerInterface>
  */
-class App
+class App extends RouteCollectorProxy implements RequestHandlerInterface
 {
-    use CallableResolverAwareTrait;
-    use MiddlewareAwareTrait;
-
     /**
      * Current version
      *
      * @var string
      */
-    const VERSION = '3.0.0';
+    public const VERSION = '4.12.0';
+
+    protected RouteResolverInterface $routeResolver;
+
+    protected MiddlewareDispatcherInterface $middlewareDispatcher;
 
     /**
-     * Container
-     *
-     * @var ContainerInterface
+     * @param TContainerInterface $container
      */
-    private $container;
+    public function __construct(
+        ResponseFactoryInterface $responseFactory,
+        ?ContainerInterface $container = null,
+        ?CallableResolverInterface $callableResolver = null,
+        ?RouteCollectorInterface $routeCollector = null,
+        ?RouteResolverInterface $routeResolver = null,
+        ?MiddlewareDispatcherInterface $middlewareDispatcher = null
+    ) {
+        parent::__construct(
+            $responseFactory,
+            $callableResolver ?? new CallableResolver($container),
+            $container,
+            $routeCollector
+        );
 
-    /********************************************************************************
-     * Constructor
-     *******************************************************************************/
+        $this->routeResolver = $routeResolver ?? new RouteResolver($this->routeCollector);
+        $routeRunner = new RouteRunner($this->routeResolver, $this->routeCollector->getRouteParser(), $this);
 
-    /**
-     * Create new application
-     *
-     * @param ContainerInterface|array $container Either a ContainerInterface or an associative array of application settings
-     * @throws InvalidArgumentException when no container is provided that implements ContainerInterface
-     */
-    public function __construct($container = [])
-    {
-        if (is_array($container)) {
-            $container = new Container($container);
-        }
-        if (!$container instanceof ContainerInterface) {
-            throw new InvalidArgumentException('Expected a ContainerInterface');
-        }
-        $this->container = $container;
-    }
-
-    /**
-     * Enable access to the DI container by consumers of $app
-     *
-     * @return ContainerInterface
-     */
-    public function getContainer()
-    {
-        return $this->container;
-    }
-
-    /**
-     * Add middleware
-     *
-     * This method prepends new middleware to the app's middleware stack.
-     *
-     * @param  mixed    $callable The callback routine
-     *
-     * @return static
-     */
-    public function add($callable)
-    {
-        $callable = $this->resolveCallable($callable);
-        if ($callable instanceof Closure) {
-            $callable = $callable->bindTo($this->container);
+        if (!$middlewareDispatcher) {
+            $middlewareDispatcher = new MiddlewareDispatcher($routeRunner, $this->callableResolver, $container);
+        } else {
+            $middlewareDispatcher->seedMiddlewareStack($routeRunner);
         }
 
-        return $this->addMiddleware($callable);
+        $this->middlewareDispatcher = $middlewareDispatcher;
     }
 
     /**
-     * Calling a non-existant method on App checks to see if there's an item
-     * in the container than is callable and if so, calls it.
-     *
-     * @param  string $method
-     * @param  array $args
-     * @return mixed
+     * @return RouteResolverInterface
      */
-    public function __call($method, $args)
+    public function getRouteResolver(): RouteResolverInterface
     {
-        if ($this->container->has($method)) {
-            $obj = $this->container->get($method);
-            if (is_callable($obj)) {
-                return call_user_func_array($obj, $args);
-            }
-        }
-    }
-
-    /********************************************************************************
-     * Router proxy methods
-     *******************************************************************************/
-
-    /**
-     * Add GET route
-     *
-     * @param  string $pattern  The route URI pattern
-     * @param  mixed  $callable The route callback routine
-     *
-     * @return \Slim\Interfaces\RouteInterface
-     */
-    public function get($pattern, $callable)
-    {
-        return $this->map(['GET'], $pattern, $callable);
+        return $this->routeResolver;
     }
 
     /**
-     * Add POST route
-     *
-     * @param  string $pattern  The route URI pattern
-     * @param  mixed  $callable The route callback routine
-     *
-     * @return \Slim\Interfaces\RouteInterface
+     * @return MiddlewareDispatcherInterface
      */
-    public function post($pattern, $callable)
+    public function getMiddlewareDispatcher(): MiddlewareDispatcherInterface
     {
-        return $this->map(['POST'], $pattern, $callable);
+        return $this->middlewareDispatcher;
     }
 
     /**
-     * Add PUT route
-     *
-     * @param  string $pattern  The route URI pattern
-     * @param  mixed  $callable The route callback routine
-     *
-     * @return \Slim\Interfaces\RouteInterface
+     * @param MiddlewareInterface|string|callable $middleware
+     * @return App<TContainerInterface>
      */
-    public function put($pattern, $callable)
+    public function add($middleware): self
     {
-        return $this->map(['PUT'], $pattern, $callable);
+        $this->middlewareDispatcher->add($middleware);
+        return $this;
     }
 
     /**
-     * Add PATCH route
-     *
-     * @param  string $pattern  The route URI pattern
-     * @param  mixed  $callable The route callback routine
-     *
-     * @return \Slim\Interfaces\RouteInterface
+     * @param MiddlewareInterface $middleware
+     * @return App<TContainerInterface>
      */
-    public function patch($pattern, $callable)
+    public function addMiddleware(MiddlewareInterface $middleware): self
     {
-        return $this->map(['PATCH'], $pattern, $callable);
+        $this->middlewareDispatcher->addMiddleware($middleware);
+        return $this;
     }
 
     /**
-     * Add DELETE route
+     * Add the Slim built-in routing middleware to the app middleware stack
      *
-     * @param  string $pattern  The route URI pattern
-     * @param  mixed  $callable The route callback routine
+     * This method can be used to control middleware order and is not required for default routing operation.
      *
-     * @return \Slim\Interfaces\RouteInterface
+     * @return RoutingMiddleware
      */
-    public function delete($pattern, $callable)
+    public function addRoutingMiddleware(): RoutingMiddleware
     {
-        return $this->map(['DELETE'], $pattern, $callable);
+        $routingMiddleware = new RoutingMiddleware(
+            $this->getRouteResolver(),
+            $this->getRouteCollector()->getRouteParser()
+        );
+        $this->add($routingMiddleware);
+        return $routingMiddleware;
     }
 
     /**
-     * Add OPTIONS route
+     * Add the Slim built-in error middleware to the app middleware stack
      *
-     * @param  string $pattern  The route URI pattern
-     * @param  mixed  $callable The route callback routine
+     * @param bool                 $displayErrorDetails
+     * @param bool                 $logErrors
+     * @param bool                 $logErrorDetails
+     * @param LoggerInterface|null $logger
      *
-     * @return \Slim\Interfaces\RouteInterface
+     * @return ErrorMiddleware
      */
-    public function options($pattern, $callable)
-    {
-        return $this->map(['OPTIONS'], $pattern, $callable);
+    public function addErrorMiddleware(
+        bool $displayErrorDetails,
+        bool $logErrors,
+        bool $logErrorDetails,
+        ?LoggerInterface $logger = null
+    ): ErrorMiddleware {
+        $errorMiddleware = new ErrorMiddleware(
+            $this->getCallableResolver(),
+            $this->getResponseFactory(),
+            $displayErrorDetails,
+            $logErrors,
+            $logErrorDetails,
+            $logger
+        );
+        $this->add($errorMiddleware);
+        return $errorMiddleware;
     }
 
     /**
-     * Add route for any HTTP method
+     * Add the Slim body parsing middleware to the app middleware stack
      *
-     * @param  string $pattern  The route URI pattern
-     * @param  mixed  $callable The route callback routine
+     * @param callable[] $bodyParsers
      *
-     * @return \Slim\Interfaces\RouteInterface
+     * @return BodyParsingMiddleware
      */
-    public function any($pattern, $callable)
+    public function addBodyParsingMiddleware(array $bodyParsers = []): BodyParsingMiddleware
     {
-        return $this->map(['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], $pattern, $callable);
+        $bodyParsingMiddleware = new BodyParsingMiddleware($bodyParsers);
+        $this->add($bodyParsingMiddleware);
+        return $bodyParsingMiddleware;
     }
-
-    /**
-     * Add route with multiple methods
-     *
-     * @param  string[] $methods  Numeric array of HTTP method names
-     * @param  string   $pattern  The route URI pattern
-     * @param  mixed    $callable The route callback routine
-     *
-     * @return RouteInterface
-     */
-    public function map(array $methods, $pattern, $callable)
-    {
-        if ($callable instanceof Closure) {
-            $callable = $callable->bindTo($this->container);
-        }
-
-        $route = $this->container->get('router')->map($methods, $pattern, $callable);
-        if (is_callable([$route, 'setContainer'])) {
-            $route->setContainer($this->container);
-        }
-
-        if (is_callable([$route, 'setOutputBuffering'])) {
-            $route->setOutputBuffering($this->container->get('settings')['outputBuffering']);
-        }
-
-        return $route;
-    }
-
-    /**
-     * Route Groups
-     *
-     * This method accepts a route pattern and a callback. All route
-     * declarations in the callback will be prepended by the group(s)
-     * that it is in.
-     *
-     * @param string   $pattern
-     * @param callable $callable
-     *
-     * @return RouteGroupInterface
-     */
-    public function group($pattern, $callable)
-    {
-        /** @var RouteGroup $group */
-        $group = $this->container->get('router')->pushGroup($pattern, $callable);
-        $group->setContainer($this->container);
-        $group($this);
-        $this->container->get('router')->popGroup();
-        return $group;
-    }
-
-    /********************************************************************************
-     * Runner
-     *******************************************************************************/
 
     /**
      * Run application
@@ -285,271 +180,47 @@ class App
      * This method traverses the application middleware stack and then sends the
      * resultant Response object to the HTTP client.
      *
-     * @param bool|false $silent
-     * @return ResponseInterface
-     *
-     * @throws Exception
-     * @throws MethodNotAllowedException
-     * @throws NotFoundException
+     * @param ServerRequestInterface|null $request
+     * @return void
      */
-    public function run($silent = false)
+    public function run(?ServerRequestInterface $request = null): void
     {
-        $request = $this->container->get('request');
-        $response = $this->container->get('response');
-
-        // Ensure basePath is set
-        $router = $this->container->get('router');
-        if (is_callable([$request->getUri(), 'getBasePath']) && is_callable([$router, 'setBasePath'])) {
-            $router->setBasePath($request->getUri()->getBasePath());
+        if (!$request) {
+            $serverRequestCreator = ServerRequestCreatorFactory::create();
+            $request = $serverRequestCreator->createServerRequestFromGlobals();
         }
 
-
-        // Dispatch the Router first if the setting for this is on
-        if ($this->container->get('settings')['determineRouteBeforeAppMiddleware'] === true) {
-            // Dispatch router (note: you won't be able to alter routes after this)
-            $request = $this->dispatchRouterAndPrepareRoute($request, $router);
-        }
-
-        // Traverse middleware stack
-        try {
-            $response = $this->callMiddlewareStack($request, $response);
-        } catch (MethodNotAllowedException $e) {
-            if (!$this->container->has('notAllowedHandler')) {
-                throw $e;
-            }
-            /** @var callable $notAllowedHandler */
-            $notAllowedHandler = $this->container->get('notAllowedHandler');
-            $response = $notAllowedHandler($e->getRequest(), $e->getResponse(), $e->getAllowedMethods());
-        } catch (NotFoundException $e) {
-            if (!$this->container->has('notFoundHandler')) {
-                throw $e;
-            }
-            /** @var callable $notFoundHandler */
-            $notFoundHandler = $this->container->get('notFoundHandler');
-            $response = $notFoundHandler($e->getRequest(), $e->getResponse());
-        } catch (SlimException $e) {
-            $response = $e->getResponse();
-        } catch (Exception $e) {
-            if (!$this->container->has('errorHandler')) {
-                throw $e;
-            }
-            /** @var callable $errorHandler */
-            $errorHandler = $this->container->get('errorHandler');
-            $response = $errorHandler($request, $response, $e);
-        }
-
-        $response = $this->finalize($response);
-
-        if (!$silent) {
-            $this->respond($response);
-        }
-
-        return $response;
+        $response = $this->handle($request);
+        $responseEmitter = new ResponseEmitter();
+        $responseEmitter->emit($response);
     }
 
     /**
-     * Send the response the client
+     * Handle a request
      *
-     * @param ResponseInterface $response
-     */
-    public function respond(ResponseInterface $response)
-    {
-        // Send response
-        if (!headers_sent()) {
-            // Status
-            header(sprintf(
-                'HTTP/%s %s %s',
-                $response->getProtocolVersion(),
-                $response->getStatusCode(),
-                $response->getReasonPhrase()
-            ));
-
-            // Headers
-            foreach ($response->getHeaders() as $name => $values) {
-                foreach ($values as $value) {
-                    header(sprintf('%s: %s', $name, $value), false);
-                }
-            }
-        }
-
-        // Body
-        if (!$this->isEmptyResponse($response)) {
-            $body = $response->getBody();
-            if ($body->isSeekable()) {
-                $body->rewind();
-            }
-            $settings       = $this->container->get('settings');
-            $chunkSize      = $settings['responseChunkSize'];
-            $contentLength  = $response->getHeaderLine('Content-Length');
-            if (!$contentLength) {
-                $contentLength = $body->getSize();
-            }
-            $totalChunks    = ceil($contentLength / $chunkSize);
-            $lastChunkSize  = $contentLength % $chunkSize;
-            $currentChunk   = 0;
-            while (!$body->eof() && $currentChunk < $totalChunks) {
-                if (++$currentChunk == $totalChunks && $lastChunkSize > 0) {
-                    $chunkSize = $lastChunkSize;
-                }
-                echo $body->read($chunkSize);
-                if (connection_status() != CONNECTION_NORMAL) {
-                    break;
-                }
-            }
-        }
-    }
-
-    /**
-     * Invoke application
-     *
-     * This method implements the middleware interface. It receives
-     * Request and Response objects, and it returns a Response object
-     * after compiling the routes registered in the Router and dispatching
-     * the Request object to the appropriate Route callback routine.
-     *
-     * @param  ServerRequestInterface $request  The most recent Request object
-     * @param  ResponseInterface      $response The most recent Response object
-     *
-     * @return ResponseInterface
-     * @throws MethodNotAllowedException
-     * @throws NotFoundException
-     */
-    public function __invoke(ServerRequestInterface $request, ResponseInterface $response)
-    {
-        // Get the route info
-        $routeInfo = $request->getAttribute('routeInfo');
-
-        /** @var \Slim\Interfaces\RouterInterface $router */
-        $router = $this->container->get('router');
-
-        // If router hasn't been dispatched or the URI changed then dispatch
-        if (null === $routeInfo || ($routeInfo['request'] !== [$request->getMethod(), (string) $request->getUri()])) {
-            $request = $this->dispatchRouterAndPrepareRoute($request, $router);
-            $routeInfo = $request->getAttribute('routeInfo');
-        }
-
-        if ($routeInfo[0] === Dispatcher::FOUND) {
-            $route = $router->lookupRoute($routeInfo[1]);
-            return $route->run($request, $response);
-        } elseif ($routeInfo[0] === Dispatcher::METHOD_NOT_ALLOWED) {
-            if (!$this->container->has('notAllowedHandler')) {
-                throw new MethodNotAllowedException($request, $response, $routeInfo[1]);
-            }
-            /** @var callable $notAllowedHandler */
-            $notAllowedHandler = $this->container->get('notAllowedHandler');
-            return $notAllowedHandler($request, $response, $routeInfo[1]);
-        }
-
-        if (!$this->container->has('notFoundHandler')) {
-            throw new NotFoundException($request, $response);
-        }
-        /** @var callable $notFoundHandler */
-        $notFoundHandler = $this->container->get('notFoundHandler');
-        return $notFoundHandler($request, $response);
-    }
-
-    /**
-     * Perform a sub-request from within an application route
-     *
-     * This method allows you to prepare and initiate a sub-request, run within
-     * the context of the current request. This WILL NOT issue a remote HTTP
-     * request. Instead, it will route the provided URL, method, headers,
-     * cookies, body, and server variables against the set of registered
-     * application routes. The result response object is returned.
-     *
-     * @param  string            $method      The request method (e.g., GET, POST, PUT, etc.)
-     * @param  string            $path        The request URI path
-     * @param  string            $query       The request URI query string
-     * @param  array             $headers     The request headers (key-value array)
-     * @param  array             $cookies     The request cookies (key-value array)
-     * @param  string            $bodyContent The request body
-     * @param  ResponseInterface $response     The response object (optional)
-     * @return ResponseInterface
-     */
-    public function subRequest($method, $path, $query = '', array $headers = [], array $cookies = [], $bodyContent = '', ResponseInterface $response = null)
-    {
-        $env = $this->container->get('environment');
-        $uri = Uri::createFromEnvironment($env)->withPath($path)->withQuery($query);
-        $headers = new Headers($headers);
-        $serverParams = $env->all();
-        $body = new Body(fopen('php://temp', 'r+'));
-        $body->write($bodyContent);
-        $body->rewind();
-        $request = new Request($method, $uri, $headers, $cookies, $serverParams, $body);
-
-        if (!$response) {
-            $response = $this->container->get('response');
-        }
-
-        return $this($request, $response);
-    }
-
-    /**
-     * Dispatch the router to find the route. Prepare the route for use.
+     * This method traverses the application middleware stack and then returns the
+     * resultant Response object.
      *
      * @param ServerRequestInterface $request
-     * @param RouterInterface        $router
-     * @return ServerRequestInterface
-     */
-    protected function dispatchRouterAndPrepareRoute(ServerRequestInterface $request, RouterInterface $router)
-    {
-        $routeInfo = $router->dispatch($request);
-
-        if ($routeInfo[0] === Dispatcher::FOUND) {
-            $routeArguments = [];
-            foreach ($routeInfo[2] as $k => $v) {
-                $routeArguments[$k] = urldecode($v);
-            }
-
-            $route = $router->lookupRoute($routeInfo[1]);
-            $route->prepare($request, $routeArguments);
-
-            // add route to the request's attributes in case a middleware or handler needs access to the route
-            $request = $request->withAttribute('route', $route);
-        }
-
-        $routeInfo['request'] = [$request->getMethod(), (string) $request->getUri()];
-
-        return $request->withAttribute('routeInfo', $routeInfo);
-    }
-
-    /**
-     * Finalize response
-     *
-     * @param ResponseInterface $response
      * @return ResponseInterface
      */
-    protected function finalize(ResponseInterface $response)
+    public function handle(ServerRequestInterface $request): ResponseInterface
     {
-        // stop PHP sending a Content-Type automatically
-        ini_set('default_mimetype', '');
+        $response = $this->middlewareDispatcher->handle($request);
 
-        if ($this->isEmptyResponse($response)) {
-            return $response->withoutHeader('Content-Type')->withoutHeader('Content-Length');
-        }
-
-        $size = $response->getBody()->getSize();
-        if ($size !== null && !$response->hasHeader('Content-Length')) {
-            $response = $response->withHeader('Content-Length', (string) $size);
+        /**
+         * This is to be in compliance with RFC 2616, Section 9.
+         * If the incoming request method is HEAD, we need to ensure that the response body
+         * is empty as the request may fall back on a GET route handler due to FastRoute's
+         * routing logic which could potentially append content to the response body
+         * https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.4
+         */
+        $method = strtoupper($request->getMethod());
+        if ($method === 'HEAD') {
+            $emptyBody = $this->responseFactory->createResponse()->getBody();
+            return $response->withBody($emptyBody);
         }
 
         return $response;
-    }
-
-    /**
-     * Helper method, which returns true if the provided response must not output a body and false
-     * if the response could have a body.
-     *
-     * @see https://tools.ietf.org/html/rfc7231
-     *
-     * @param ResponseInterface $response
-     * @return bool
-     */
-    protected function isEmptyResponse(ResponseInterface $response)
-    {
-        if (method_exists($response, 'isEmpty')) {
-            return $response->isEmpty();
-        }
-        return in_array($response->getStatusCode(), [204, 205, 304]);
     }
 }

@@ -1,7 +1,12 @@
 <?php
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Slim\Factory\AppFactory;
+
 require 'vendor/autoload.php';
 
-$app = new Slim\App();
+$app = AppFactory::create();
+$app->setBasepath("http://localhost/tecweb/practicas/p14/slim_v4");
 
 $app->get('/', function ( $request, $response, $args ) {
     $response->write("Hola Mundo Slim!!!");
